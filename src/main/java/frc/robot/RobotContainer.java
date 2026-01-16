@@ -28,6 +28,20 @@ public class RobotContainer {
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     // Configure the trigger bindings
+
+/**
+ * align to climb: while true, a
+ * l1 climb: on true, y
+ * turn to goal: while true, right bumper
+ * shoot: while true, right trigger
+ * intake on: on true, x (closest to joystick)
+ * intake off: on true, b
+ * pass align: while true, left bumper
+ * pass: while true, left trigger
+ * 
+ * in future, combine aligns with shots
+ */
+
     configureBindings();
   }
 
