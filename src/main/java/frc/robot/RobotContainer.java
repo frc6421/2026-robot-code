@@ -6,10 +6,25 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ExampleCommand;
+import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.ExampleSubsystem;
+
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import com.ctre.phoenix6.SignalLogger;
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.ctre.phoenix6.swerve.SwerveRequest;
+
+import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
+import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
 
 /**
  * This class is where the bulk of the robot should be declared. Since Command-based is a
@@ -18,11 +33,23 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
  * subsystems, commands, and trigger mappings) should be declared here.
  */
 public class RobotContainer {
+  private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
+  private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   // The robot's subsystems and commands are defined here...
   private final ExampleSubsystem m_exampleSubsystem = new ExampleSubsystem();
 
+  private final Telemetry logger = new Telemetry(MaxSpeed);
+  private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+
+  private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
+			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
+			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
+  private final SlewRateLimiter xDriveSlew = new SlewRateLimiter(Constants.DriveConstants.DRIVE_SLEW_RATE);
+	private final SlewRateLimiter yDriveSlew = new SlewRateLimiter(Constants.DriveConstants.DRIVE_SLEW_RATE);
+
   // Replace with CommandPS4Controller or CommandJoystick if needed
-  private final CommandXboxController m_driverController =
+  private final CommandXboxController joystick =
       new CommandXboxController(OperatorConstants.kDriverControllerPort);
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
@@ -55,13 +82,25 @@ public class RobotContainer {
    * joysticks}.
    */
   private void configureBindings() {
-    // Schedule `ExampleCommand` when `exampleCondition` changes to `true`
-    new Trigger(m_exampleSubsystem::exampleCondition)
-        .onTrue(new ExampleCommand(m_exampleSubsystem));
+    DriverStation.silenceJoystickConnectionWarning(true);
+    drivetrain.setDefaultCommand(
+			// Drivetrain will execute this command periodically
+			drivetrain.applyRequest(() -> drive
+					// Drive forward with negative Y (forward)
+					.withVelocityX(xDriveSlew.calculate(-joystick.getLeftY() * MaxSpeed))
+					// Drive left with negative X (left)
+					.withVelocityY(yDriveSlew.calculate(-joystick.getLeftX() * MaxSpeed))
+					// Drive counterclockwise with negative X (left)
+					.withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
 
-    // Schedule `exampleMethodCommand` when the Xbox controller's B button is pressed,
-    // cancelling on release.
-    m_driverController.b().whileTrue(m_exampleSubsystem.exampleMethodCommand());
+     joystick.a().onTrue(new InstantCommand(() -> SignalLogger.start()));
+		 joystick.b().onTrue(new InstantCommand(() -> SignalLogger.stop()));
+     joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+		 joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+		 joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+     joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+
+    drivetrain.registerTelemetry(logger::telemeterize);
   }
 
   /**
