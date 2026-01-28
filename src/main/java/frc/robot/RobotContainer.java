@@ -7,6 +7,12 @@ package frc.robot;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.commands.ExampleCommand;
 import frc.robot.subsystems.ExampleSubsystem;
+
+import com.ctre.phoenix6.StatusCode;
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.hardware.TalonFX;
+
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
@@ -73,4 +79,17 @@ public class RobotContainer {
     // An example command will be run in autonomous
     return null;
   }
+
+
+  public static void applyTalonConfigs(TalonFX motor, TalonFXConfiguration config) {
+		StatusCode status = StatusCode.StatusCodeNotInitialized;
+		for (int i = 0; i < 5; ++i) {
+			status = motor.getConfigurator().apply(config);
+			if (status.isOK())
+				break;
+		}
+		if (!status.isOK()) {
+			DataLogManager.log("Erorr:" + motor.getDescription() + " Configuration not applied " + status.toString());
+		}
+	}
 }
