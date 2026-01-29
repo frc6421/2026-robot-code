@@ -27,8 +27,8 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public static class IntakeConstants{
 
-    private static final int INTAKE_MOTOR_ID = 67; 
-    private static final int INTAKE_MOTWO_ID = 68;
+    private static final int INTAKE_MOTONER_ID = 60; 
+    private static final int INTAKE_MOTWOR_ID = 61;
    
     private static final MotorOutputConfigs INTAKE_MOTOR_CONFIGS = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Coast)
@@ -37,8 +37,8 @@ public class IntakeSubsystem extends SubsystemBase {
 
   /** Creates a new IntakeSubsystem. */
   public IntakeSubsystem() {
-  intakeMotor = new TalonFX(IntakeConstants.INTAKE_MOTOR_ID);
-  intakeMotor = new TalonFX(IntakeConstants.INTAKE_MOTWO_ID);
+  intakeMotor = new TalonFX(IntakeConstants.INTAKE_MOTONER_ID);
+  intakeMotwo = new TalonFX(IntakeConstants.INTAKE_MOTWOR_ID);
   
   RobotContainer.applyTalonConfigs(intakeMotor, new TalonFXConfiguration());
   RobotContainer.applyTalonConfigs(intakeMotwo, new TalonFXConfiguration());
@@ -47,6 +47,7 @@ public class IntakeSubsystem extends SubsystemBase {
   .withMotorOutput(IntakeConstants.INTAKE_MOTOR_CONFIGS);
 
   RobotContainer.applyTalonConfigs(intakeMotor, intakeMotorConfig);
+  RobotContainer.applyTalonConfigs(intakeMotwo, intakeMotorConfig);
   }
 
   public Command setIntakeSpeed(double output){
