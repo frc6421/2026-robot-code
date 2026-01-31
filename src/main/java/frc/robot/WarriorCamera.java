@@ -94,8 +94,8 @@ public class WarriorCamera implements Sendable {
     private final static double MAXIMUM_AMBIGUITY = 0.20;
     private final static int[] BLACKLISTED_TAG_ID_LIST = {};
 
-    private final static Matrix<N3, N1> LOW_SD = VecBuilder.fill(0.1, 0.1, Units.degreesToRadians(0.1));
-    private final static Matrix<N3, N1> HIGH_SD = VecBuilder.fill(0.9, 0.9, Units.degreesToRadians(0.1));
+    private final static Matrix<N3, N1> LOW_SD = VecBuilder.fill(0.01, 0.01, Units.degreesToRadians(0.01)); // Units of meters and radians
+    private final static Matrix<N3, N1> HIGH_SD = VecBuilder.fill(0.1, 0.1, Units.degreesToRadians(0.1));
 
     public static final Transform2d ODOMETRY_BLUE_OFFSET = new Transform2d(Inches.of(0.0).magnitude(),
         Inches.of(0.0).magnitude(), new Rotation2d());
