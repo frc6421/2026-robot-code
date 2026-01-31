@@ -20,4 +20,8 @@ public final class Constants {
   public static class DriveConstants {
     public static final double DRIVE_SLEW_RATE = 10.0;
   }
+
+  public static class ClimbPositions {
+    public static final double L1_INCHES = 10.0;
+  }
 }

@@ -5,8 +5,11 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.command.ClimbCommand;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
@@ -41,6 +44,7 @@ public class RobotContainer {
 
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
+  private final ClimbSubsystem climberSubsystem = new ClimbSubsystem();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
@@ -94,12 +98,14 @@ public class RobotContainer {
 					// Drive counterclockwise with negative X (left)
 					.withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
 
-     joystick.a().onTrue(new InstantCommand(() -> SignalLogger.start()));
-		 joystick.b().onTrue(new InstantCommand(() -> SignalLogger.stop()));
-     joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-		 joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-		 joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-     joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    //  joystick.a().onTrue(new InstantCommand(() -> SignalLogger.start()));
+		//  joystick.b().onTrue(new InstantCommand(() -> SignalLogger.stop()));
+    //  joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
+		//  joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
+		//  joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
+    //  joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
+    joystick.x().whileTrue(new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES));
+
 
     drivetrain.registerTelemetry(logger::telemeterize);
   }
@@ -126,4 +132,5 @@ public class RobotContainer {
 			DataLogManager.log("Erorr:" + motor.getDescription() + " Configuration not applied " + status.toString());
 		}
 	}
+
 }

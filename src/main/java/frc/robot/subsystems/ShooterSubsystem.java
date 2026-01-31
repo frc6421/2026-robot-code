@@ -14,6 +14,7 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -25,24 +26,32 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-  final private TalonFX shooterMotorLeft;
-  final private TalonFX shooterMotorRight;
+  final private TalonFX shooterMotor;
+  final private TalonFX shooterMotorTurn;
   
   final private TalonFXConfiguration shooterMotorConfig;
+  final private TalonFXConfiguration shooterMotorTurnConfig;
 
-  private Slot0Configs PIDConfig;
+  private Slot0Configs PIDConfigShooter;
+  private Slot0Configs PIDConfigTurn;
 
   private VelocityVoltage shooterRequest;
+  private PositionVoltage shooterRequestTurn;
 
   public static final class ShooterConstants{
-    private static final int  SHOOTER_LEFT_CAN_ID = 0;
-    private static final int  SHOOTER_RIGHT_CAN_ID = 0;
+    private static final int SHOOTER_LEFT_CAN_ID = 0;
+    private static final int SHOOTER_RIGHT_CAN_ID = 0;
 
     private static final double SHOOTER_GEAR_RATIO = 0.0;
 
+    private static final double SHOOTER_ROTATIONS_PER_DEGREE = 0.0;
+
     private static final MotorOutputConfigs SHOOTER_MOTOR_CONFIG = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Coast);
+    private static final MotorOutputConfigs SHOOTER_MOTOR_TURN_CONFIG = new MotorOutputConfigs()
+    .withNeutralMode(NeutralModeValue.Brake);
 
+    private static final class SHOOTER_PID_VALUES {
     private static final double kP = 0.1;
 
     private static final double kS = 0.1;
@@ -52,48 +61,82 @@ public class ShooterSubsystem extends SubsystemBase {
     private static final double kI = 0.0;
 
     private static final double kD = 0.0;
+    }
 
-    private static final double TARGET_RPM = 5000.0;
+    private static final class SHOOTER_TURN_PID_VALUES {
+    private static final double kP = 0.1;
+
+    private static final double kS = 0.1;
+
+    private static final double kV = 0.1;
+
+    private static final double kI = 0.0;
+
+    private static final double kD = 0.0;
+    }
 
   }
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
-    shooterMotorLeft = new TalonFX(ShooterConstants.SHOOTER_LEFT_CAN_ID);
-    shooterMotorRight = new TalonFX(ShooterConstants.SHOOTER_RIGHT_CAN_ID);
+    shooterMotor = new TalonFX(ShooterConstants.SHOOTER_LEFT_CAN_ID);
+    shooterMotorTurn = new TalonFX(ShooterConstants.SHOOTER_RIGHT_CAN_ID);
 
     shooterMotorConfig = new TalonFXConfiguration()
     .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG);
 
+    shooterMotorTurnConfig = new TalonFXConfiguration()
+    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_TURN_CONFIG);
+
     shooterRequest = new VelocityVoltage(0);
+
+    shooterRequestTurn = new PositionVoltage(0);
     
-    shooterMotorLeft.getConfigurator().apply(new TalonFXConfiguration());
-    shooterMotorRight.getConfigurator().apply(new TalonFXConfiguration());
+    shooterMotor.getConfigurator().apply(new TalonFXConfiguration());
+    shooterMotorTurn.getConfigurator().apply(new TalonFXConfiguration());
 
-    PIDConfig = new Slot0Configs();
+    shooterMotor.getConfigurator().apply(shooterMotorConfig);
+    shooterMotorTurn.getConfigurator().apply(shooterMotorTurnConfig);
 
-    PIDConfig.kS = ShooterConstants.kS;
-    PIDConfig.kP = ShooterConstants.kP;
-    PIDConfig.kV = ShooterConstants.kV;
-    PIDConfig.kI = ShooterConstants.kI;
-    PIDConfig.kD = ShooterConstants.kD;
+    PIDConfigShooter = new Slot0Configs();
 
-    shooterMotorLeft.getConfigurator().apply(PIDConfig);
-    shooterMotorRight.getConfigurator().apply(PIDConfig);
+    PIDConfigShooter.kS = ShooterConstants.SHOOTER_PID_VALUES.kS;
+    PIDConfigShooter.kP = ShooterConstants.SHOOTER_PID_VALUES.kP;
+    PIDConfigShooter.kV = ShooterConstants.SHOOTER_PID_VALUES.kV;
+    PIDConfigShooter.kI = ShooterConstants.SHOOTER_PID_VALUES.kI;
+    PIDConfigShooter.kD = ShooterConstants.SHOOTER_PID_VALUES.kD;
 
-    shooterMotorRight.setControl(new Follower(ShooterConstants.SHOOTER_LEFT_CAN_ID, MotorAlignmentValue.Opposed));
+    PIDConfigTurn = new Slot0Configs();
+
+    PIDConfigTurn.kS = ShooterConstants.SHOOTER_TURN_PID_VALUES.kS;
+    PIDConfigTurn.kP = ShooterConstants.SHOOTER_TURN_PID_VALUES.kP;
+    PIDConfigTurn.kV = ShooterConstants.SHOOTER_TURN_PID_VALUES.kV;
+    PIDConfigTurn.kI = ShooterConstants.SHOOTER_TURN_PID_VALUES.kI;
+    PIDConfigTurn.kD = ShooterConstants.SHOOTER_TURN_PID_VALUES.kD;
+
+    shooterMotor.getConfigurator().apply(PIDConfigShooter);
+    shooterMotorTurn.getConfigurator().apply(PIDConfigTurn);
   }
   
-  private void setRPM(double rpm){
+  private void setRPM(double rpm) {
 
     double rps = rpm/60.0;
 
-    shooterRequest.withVelocity(rps).withFeedForward(ShooterConstants.kV * rps);
+    shooterRequest.withVelocity(rps).withFeedForward(ShooterConstants.SHOOTER_PID_VALUES.kV * rps);
 
-    shooterMotorLeft.setControl(shooterRequest);
+    shooterMotor.setControl(shooterRequest);
+  }
+
+  private void turnShooter(double angle) {
+
+    shooterRequestTurn.withPosition(angle * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE);
+
+    shooterMotorTurn.setControl(shooterRequestTurn);
+
+    
   }
 
   private void stop(){
-    shooterMotorLeft.stopMotor();
+    shooterMotor.stopMotor();
 
   }
 
