@@ -87,9 +87,9 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorTurnConfig = new TalonFXConfiguration()
     .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_TURN_CONFIG);
 
-    shooterRequest = new VelocityVoltage(0);
+    shooterRequest = new VelocityVoltage(0).withEnableFOC(true);
 
-    shooterRequestTurn = new PositionVoltage(0);
+    shooterRequestTurn = new PositionVoltage(0).withEnableFOC(true);
     
     shooterMotor.getConfigurator().apply(new TalonFXConfiguration());
     shooterMotorTurn.getConfigurator().apply(new TalonFXConfiguration());

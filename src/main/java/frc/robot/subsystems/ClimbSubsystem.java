@@ -113,8 +113,8 @@ public class ClimbSubsystem extends SubsystemBase {
   public ClimbSubsystem() {
     
     climbMotor = new TalonFX(ClimbConstants.CLIMB_MOTOR_ID);
-    climbRequest = new MotionMagicVoltage(0);
-    voltageRequest = new PositionVoltage(0);
+    //climbRequest = new MotionMagicVoltage(0);
+    voltageRequest = new PositionVoltage(0).withEnableFOC(true);
 
     RobotContainer.applyTalonConfigs(climbMotor, new TalonFXConfiguration());
     

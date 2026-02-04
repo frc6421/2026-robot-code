@@ -76,7 +76,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
   intakePivot.getConfigurator().apply(PIDConfigIntake);
 
-  intakeRequestTurn = new PositionVoltage(0);
+  intakeRequestTurn = new PositionVoltage(0).withEnableFOC(true);
   }
 
   private void turnIntake(double angle) {
