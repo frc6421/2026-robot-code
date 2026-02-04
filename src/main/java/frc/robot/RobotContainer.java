@@ -45,6 +45,8 @@ public class RobotContainer {
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private final ClimbSubsystem climberSubsystem = new ClimbSubsystem();
+  private final ClimbCommand climbDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
+  private final ClimbCommand climbUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
@@ -104,7 +106,14 @@ public class RobotContainer {
 		//  joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 		//  joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
     //  joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    joystick.x().whileTrue(new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES));
+    joystick.x().onTrue(climbDownCommand);
+    joystick.y().onTrue(climbUpCommand);
+    // joystick.a().whileTrue(new InstantCommand(() -> climberSubsystem.setSpeed(.15)));
+    // joystick.a().onFalse(new InstantCommand(() -> climberSubsystem.stopClimbMotors()));
+    // joystick.b().whileTrue(new InstantCommand(() -> climberSubsystem.setSpeed(-0.15)));
+    // joystick.b().onFalse(new InstantCommand(() -> climberSubsystem.stopClimbMotors()));
+    // joystick.x().whileTrue(new InstantCommand(() -> climberSubsystem.setVelocity(1)));
+    // joystick.x().onFalse(new InstantCommand(() -> climberSubsystem.stopClimbMotors()));
 
 
     drivetrain.registerTelemetry(logger::telemeterize);

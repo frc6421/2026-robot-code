@@ -22,6 +22,7 @@ public final class Constants {
   }
 
   public static class ClimbPositions {
-    public static final double L1_INCHES = 10.0;
+    public static final double L1_INCHES = 6.9;
+    public static final double MATCH_START_INCHES = 0;
   }
 }

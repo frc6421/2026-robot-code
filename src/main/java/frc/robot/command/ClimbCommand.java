@@ -5,6 +5,7 @@
 package frc.robot.command;
 
 import edu.wpi.first.wpilibj2.command.Command;
+import frc.robot.Constants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
 
@@ -26,7 +27,7 @@ public class ClimbCommand extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    climbSubsystem.climbMotor.setControl(climbSubsystem.climbRequest.withPosition(setPosition / ClimbConstants.CLIMBER_INCHES_PER_ROTATION));
+    climbSubsystem.climbMotor.setControl(climbSubsystem.voltageRequest.withPosition(setPosition / ClimbConstants.CLIMBER_INCHES_PER_ROTATION));
   }
 
   // Called once the command ends or is interrupted.
