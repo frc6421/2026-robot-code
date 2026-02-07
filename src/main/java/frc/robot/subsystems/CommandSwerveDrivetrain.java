@@ -5,12 +5,16 @@ import static edu.wpi.first.units.Units.*;
 import java.util.Optional;
 import java.util.function.Supplier;
 
+import org.photonvision.simulation.VisionSystemSim;
+
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.Matrix;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -43,6 +47,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     // public final WarriorCamera shuttleRightCamera = new WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     // public final WarriorCamera shooterCamera = new  WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
 
+    private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
     private static final Rotation2d kBlueAlliancePerspectiveRotation = Rotation2d.kZero;
     /* Red alliance sees forward as 180 degrees (toward blue alliance wall) */
@@ -135,6 +140,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
+        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     }
 
     /**
@@ -159,6 +166,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
+        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     }
 
     /**
@@ -191,6 +200,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
+        visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
+        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     }
 
     /**
@@ -248,6 +259,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
                 m_hasAppliedOperatorPerspective = true;
             });
         }
+    }
+
+    @Override
+    public void simulationPeriodic() {
+        visionSim.update(new Pose2d(samplePoseAt(shuttleLeftCamera.getTimer()).get().getX(),
+         samplePoseAt(shuttleLeftCamera.getTimer()).get().getY(),
+         getPigeon2().getRotation2d()));
+    }
+
+    
+    public VisionSystemSim getVisionSim() {
+        return visionSim;
     }
 
     private void startSimThread() {

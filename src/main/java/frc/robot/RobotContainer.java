@@ -9,6 +9,8 @@ import frc.robot.command.ClimbCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -27,6 +29,7 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -37,7 +40,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
-public class RobotContainer {
+public class RobotContainer implements Subsystem{
   private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   // The robot's subsystems and commands are defined here...
@@ -45,6 +48,8 @@ public class RobotContainer {
   private final Telemetry logger = new Telemetry(MaxSpeed);
   private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
   private final ClimbSubsystem climberSubsystem = new ClimbSubsystem();
+  private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
+  private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final ClimbCommand climbDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
   private final ClimbCommand climbUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
 
@@ -108,13 +113,8 @@ public class RobotContainer {
     //  joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
     joystick.x().onTrue(climbDownCommand);
     joystick.y().onTrue(climbUpCommand);
-    // joystick.a().whileTrue(new InstantCommand(() -> climberSubsystem.setSpeed(.15)));
-    // joystick.a().onFalse(new InstantCommand(() -> climberSubsystem.stopClimbMotors()));
-    // joystick.b().whileTrue(new InstantCommand(() -> climberSubsystem.setSpeed(-0.15)));
-    // joystick.b().onFalse(new InstantCommand(() -> climberSubsystem.stopClimbMotors()));
-    // joystick.x().whileTrue(new InstantCommand(() -> climberSubsystem.setVelocity(1)));
-    // joystick.x().onFalse(new InstantCommand(() -> climberSubsystem.stopClimbMotors()));
 
+    joystick.a().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(45)));
 
     drivetrain.registerTelemetry(logger::telemeterize);
   }
@@ -129,6 +129,10 @@ public class RobotContainer {
     return null;
   }
 
+  @Override
+  public void simulationPeriodic() {
+    drivetrain.getVisionSim().update(drivetrain.getState().Pose);
+  }
 
   public static void applyTalonConfigs(TalonFX motor, TalonFXConfiguration config) {
 		StatusCode status = StatusCode.StatusCodeNotInitialized;

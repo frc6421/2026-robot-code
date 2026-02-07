@@ -16,7 +16,15 @@ import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.system.plant.DCMotor;
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -40,7 +48,7 @@ public class IntakeSubsystem extends SubsystemBase {
     .withNeutralMode(NeutralModeValue.Coast)
     .withInverted(InvertedValue.Clockwise_Positive);
 
-    private static final double INTAKE_ROTATIONS_PER_DEGREE = 0.0;
+    private static final double INTAKE_ROTATIONS_PER_DEGREE = 0.1;
 
     private static final double kP = 0.1;
 
@@ -52,6 +60,21 @@ public class IntakeSubsystem extends SubsystemBase {
 
     private static final double kD = 0.0;
   }
+
+  // Simulation
+  private TalonFXSimState pivotSim;
+  private TalonFXSimState intakeSim;
+
+  private final SingleJointedArmSim pivotPhysicsSim = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
+   1.0 / IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE,
+  0.05,
+   0.35,
+   0, Math.toRadians(90), true, Math.toRadians(90));
+
+  // Mechanism2d
+  private final Mechanism2d intakeMech = new Mechanism2d(2, 2);
+  private final MechanismRoot2d intakeRoot = intakeMech.getRoot("Pivot", 1, 1);
+  private final MechanismLigament2d intakeLigament = intakeRoot.append(new MechanismLigament2d("IntakeArm", 0.5, 90));
 
   /** Creates a new IntakeSubsystem. */
   public IntakeSubsystem() {
@@ -77,9 +100,15 @@ public class IntakeSubsystem extends SubsystemBase {
   intakePivot.getConfigurator().apply(PIDConfigIntake);
 
   intakeRequestTurn = new PositionVoltage(0).withEnableFOC(true);
+
+  pivotSim = intakePivot.getSimState();
+  intakeSim = intakeMotor.getSimState();
+  
+  SmartDashboard.putData("Intake Mech2d", intakeMech);
+  SmartDashboard.putData("Intake", this);
   }
 
-  private void turnIntake(double angle) {
+  public void turnIntake(double angle) {
 
     intakeRequestTurn.withPosition(angle * IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE);
 
@@ -99,5 +128,25 @@ public class IntakeSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+  }
+  @Override
+  public void simulationPeriodic() {
+    pivotPhysicsSim.setInput(pivotSim.getMotorVoltage());
+    pivotPhysicsSim.update(.020);
+
+    // move the simulated motors
+    pivotSim.setRawRotorPosition(Math.toDegrees(pivotPhysicsSim.getAngleRads()) * IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE);
+    pivotSim.setRotorVelocity(Math.toDegrees(pivotPhysicsSim.getAngleRads()) * IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE);
+
+    intakeLigament.setAngle(Math.toDegrees(pivotPhysicsSim.getAngleRads()));
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+      super.initSendable(builder);
+
+    builder.addDoubleProperty("Pivot voltage", () -> intakePivot.getMotorVoltage().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot velocity", () -> intakePivot.getVelocity().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot angle", () -> intakePivot.getPosition().getValueAsDouble() / IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE, null);
   }
 }
