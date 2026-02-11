@@ -21,12 +21,17 @@ import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
+import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.simulation.ElevatorSim;
+import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -43,6 +48,12 @@ public class ShooterSubsystem extends SubsystemBase {
   private PositionVoltage shooterRequestTurn;
 
   private DoubleSupplier setAngle = () -> 0.0;
+
+  private TalonFXSimState shooterTurnSim;
+
+  private SingleJointedArmSim shooterTurnPhysics;
+
+
 
   public static final class ShooterConstants{
     private static final int SHOOTER_LEFT_CAN_ID = 0;
@@ -122,6 +133,18 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotor.getConfigurator().apply(PIDConfigShooter);
     shooterMotorTurn.getConfigurator().apply(PIDConfigTurn);
     SmartDashboard.putData("Shooter", this);
+
+    shooterTurnSim = shooterMotorTurn.getSimState();
+
+    shooterTurnPhysics = new SingleJointedArmSim(DCMotor.getKrakenX44(1),
+     1/ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE,
+      0.05,
+      0.3,
+      Math.toRadians(-90),
+      Math.toRadians(90),
+      false,
+      0);
+
   }
   
   private void setRPM(double rpm) {
@@ -165,4 +188,14 @@ public class ShooterSubsystem extends SubsystemBase {
     builder.addDoubleProperty("ShooterTurn Angle", () -> shooterMotorTurn.getPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE, null);
     builder.addDoubleProperty("ShooterTurn SetAngle", setAngle, null);
   }
+
+public void simulationPeriodic() {
+  shooterTurnPhysics.setInput(shooterTurnSim.getMotorVoltage());
+  shooterTurnPhysics.update(.020);
+
+   shooterTurnSim.setRawRotorPosition(Math.toDegrees(shooterTurnPhysics.getAngleRads()) * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE);
+   shooterTurnSim.setRotorVelocity(Math.toDegrees(shooterTurnPhysics.getAngleRads()) * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE);
 }
+
+}
+
