@@ -54,7 +54,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 
 /** Add your docs here. */
-public class WarriorCamera implements Sendable {
+public class WarriorCameraDepricated implements Sendable {
 
   private final PhotonCamera camera;
   private Pose2d cameraPose2d = new Pose2d();
@@ -154,7 +154,7 @@ public class WarriorCamera implements Sendable {
   /**A unique data type, one that has a number correlated to each unique case in {@link PoseInvalidCause} */
   private EnumMap<PoseInvalidCause, Integer> invalidCounter = new EnumMap<>(PoseInvalidCause.class);
 
-  public WarriorCamera(String cameraName, Transform3d offsets) {
+  public WarriorCameraDepricated(String cameraName, Transform3d offsets) {
     camera = new PhotonCamera(cameraName);
 
     /*Initialize all data logging, publishing data mans it is sent to NetworkTables */

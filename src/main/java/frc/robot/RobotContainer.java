@@ -40,7 +40,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
-public class RobotContainer implements Subsystem{
+public class RobotContainer {
   private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   // The robot's subsystems and commands are defined here...
@@ -127,11 +127,6 @@ public class RobotContainer implements Subsystem{
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
     return null;
-  }
-
-  @Override
-  public void simulationPeriodic() {
-    drivetrain.getVisionSim().update(drivetrain.getState().Pose);
   }
 
   public static void applyTalonConfigs(TalonFX motor, TalonFXConfiguration config) {

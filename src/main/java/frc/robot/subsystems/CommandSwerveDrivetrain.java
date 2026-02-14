@@ -27,7 +27,6 @@ import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
-import frc.robot.WarriorCamera;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -43,7 +42,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private double m_lastSimTime;
 
     //left and right when looking at the shooter from outside robot
-    public final WarriorCamera shuttleLeftCamera = new WarriorCamera("Camera_4_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+    public final WarriorCamera vision = new WarriorCamera(this);
     // public final WarriorCamera shuttleRightCamera = new WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     // public final WarriorCamera shooterCamera = new  WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
 
@@ -140,8 +139,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
-        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
+        // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     }
 
     /**
@@ -166,8 +165,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
-        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
+        // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     }
 
     /**
@@ -200,8 +199,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
-        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
+        // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     }
 
     /**
@@ -238,10 +237,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
-        updatePose(shuttleLeftCamera);
+        var estimate = vision.getLatestEstimate();
 
-        // updatePose(shuttleRightCamera);
-        // updatePose(shooterCamera);
+        if (estimate != null) {
+            addVisionMeasurement(estimate.pose(),
+            estimate.timestamp(),
+            estimate.stdDevs());
+        }
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -263,14 +265,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void simulationPeriodic() {
-        visionSim.update(new Pose2d(samplePoseAt(shuttleLeftCamera.getTimer()).get().getX(),
-         samplePoseAt(shuttleLeftCamera.getTimer()).get().getY(),
-         getPigeon2().getRotation2d()));
+        // visionSim.update(new Pose2d(samplePoseAt(shuttleLeftCamera.getTimer()).get().getX(),
+        //  samplePoseAt(shuttleLeftCamera.getTimer()).get().getY(),
+        //  getPigeon2().getRotation2d()));
     }
 
     
     public VisionSystemSim getVisionSim() {
         return visionSim;
+    }
+
+    public Pose2d getSimPose() {
+        return getState().Pose;
     }
 
     private void startSimThread() {
@@ -323,16 +329,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
 
-    public void updatePose(WarriorCamera camera) {
-        if(camera.filterOdometry()) {
-                addVisionMeasurement(
-                new Pose2d(camera.getPose2d().getX(),
-                camera.getPose2d().getY(),
-                getPigeon2().getRotation2d()),
-                Utils.fpgaToCurrentTime(camera.getTimer()),
-                camera.getStandardDeviation());
-            }
-    }
+    // public void updatePose(WarriorCamera camera) {
+    //     // if(camera.filterOdometry()) {
+    //     //         addVisionMeasurement(
+    //     //         new Pose2d(camera.getPose2d().getX(),
+    //     //         camera.getPose2d().getY(),
+    //     //         getPigeon2().getRotation2d()),
+    //     //         Utils.fpgaToCurrentTime(camera.getTimer()),
+    //     //         camera.getStandardDeviation());
+    //     //     }
+    // }
 
     /**
      * Return the pose at a given timestamp, if the buffer is not empty.

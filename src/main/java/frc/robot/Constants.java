@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.apriltag.AprilTagFieldLayout;
+import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Transform3d;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -24,5 +28,14 @@ public final class Constants {
   public static class ClimbPositions {
     public static final double L1_INCHES = 6.9;
     public static final double MATCH_START_INCHES = 0;
+  }
+
+  public static class VisionConstants {
+    public static final Transform3d FRONT_CAM_TRANSFORM = new Transform3d();
+    public static final Transform3d LEFT_CAM_TRANSFORM = new Transform3d();
+    public static final Transform3d RIGHT_CAM_TRANSFORM = new Transform3d();
+
+    public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout
+        .loadField(AprilTagFields.k2026RebuiltAndymark);
   }
 }
