@@ -23,6 +23,7 @@ import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.networktables.NetworkTable;
 import edu.wpi.first.networktables.NetworkTableInstance;
 import edu.wpi.first.wpilibj.RobotBase;
+import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
@@ -72,9 +73,9 @@ public class WarriorCamera extends SubsystemBase {
       visionSim.addAprilTags(Constants.VisionConstants.FIELD_LAYOUT);
 
       simProp.setCalibration(1280, 720, Rotation2d.fromDegrees(70));
-      simProp.setCalibError(1.1, .08);
-      simProp.setFPS(20);
-      simProp.setAvgLatencyMs(35);
+      simProp.setCalibError(0.1, 0.1);
+      simProp.setFPS(30);
+      simProp.setAvgLatencyMs(15);
       simProp.setLatencyStdDevMs(5);
 
       for (var config : cameras) {
@@ -194,10 +195,21 @@ public class WarriorCamera extends SubsystemBase {
 
     latestEstimate = VisionPoseMerger.merge(validPoses);
     publishDebug(validPoses, latestEstimate);
+
+    if (latestEstimate != null) injectVisionMeasurement(latestEstimate);
   }
 
   public VisionPoseEstimate getLatestEstimate() {
     return latestEstimate;
+  }
+
+  private void injectVisionMeasurement(VisionPoseEstimate estimate) {
+    if (estimate == null) return;
+
+    drivetrain.addVisionMeasurement(
+      estimate.pose(),
+      estimate.timestamp(),
+      estimate.stdDevs());
   }
 
   private List<TagObservation> extractTagObservations(

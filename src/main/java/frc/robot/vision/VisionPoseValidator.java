@@ -10,10 +10,9 @@ import edu.wpi.first.math.geometry.Pose2d;
 
 /** Add your docs here. */
 public class VisionPoseValidator {
-    private static final double AMBIGUITY_LIMIT = 0.70;
-    private static final double DISTANCE_LIMIT = 7.5;
+    private static final double AMBIGUITY_LIMIT = 0.30;
+    public static final double DISTANCE_LIMIT = 5.7;
     private static final double CONFIDENCE_LIMIT = 0.10;
-    private static final double POSE_JUMP_LIMIT = 2.5;
     private static final double X_MAX = AprilTagFieldLayout
         .loadField(AprilTagFields.k2026RebuiltAndymark).getFieldLength();
     private static final double Y_MAX = AprilTagFieldLayout

@@ -12,7 +12,7 @@ import edu.wpi.first.math.numbers.N3;
 /** Add your docs here. */
 public class VisionConfidenceScorer {
     private static final double TRUSTED_TAG_AMOUNT = 2.0;
-    private static final double TRUSTED_TAG_DISTANCE = 7.0;
+    private static final double TRUSTED_TAG_DISTANCE = VisionPoseValidator.DISTANCE_LIMIT;
     private static final double XY_STD_DEVS = 0.35;
     private static final double THETA_STD_DEVS = 0.6;
     public static double compute(

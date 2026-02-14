@@ -11,5 +11,5 @@ public enum PoseInvalidCause {
     TOO_FAR,
     OUT_OF_FIELD,
     OLD_TIMESTAMP,
-    LOW_CONFIDENCE
+    LOW_CONFIDENCE,
 }

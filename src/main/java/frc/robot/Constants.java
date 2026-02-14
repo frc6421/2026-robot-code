@@ -6,7 +6,9 @@ package frc.robot;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Translation3d;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -31,9 +33,15 @@ public final class Constants {
   }
 
   public static class VisionConstants {
-    public static final Transform3d FRONT_CAM_TRANSFORM = new Transform3d();
-    public static final Transform3d LEFT_CAM_TRANSFORM = new Transform3d();
-    public static final Transform3d RIGHT_CAM_TRANSFORM = new Transform3d();
+    public static final Transform3d FRONT_CAM_TRANSFORM = new Transform3d(
+      new Translation3d(0, 0, 0),
+      new Rotation3d(0,0,0));
+    public static final Transform3d LEFT_CAM_TRANSFORM = new Transform3d(
+      new Translation3d(0, 0, 0),
+      new Rotation3d());
+    public static final Transform3d RIGHT_CAM_TRANSFORM = new Transform3d(
+      new Translation3d(0, 0, 0),
+      new Rotation3d(0,0,0));
 
     public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout
         .loadField(AprilTagFields.k2026RebuiltAndymark);
