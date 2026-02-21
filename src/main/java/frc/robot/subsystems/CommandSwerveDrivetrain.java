@@ -42,10 +42,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private Notifier m_simNotifier = null;
     private double m_lastSimTime;
 
-    //left and right when looking at the shooter from outside robot
-    public final WarriorCamera shuttleLeftCamera = new WarriorCamera("Camera_4_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
-    // public final WarriorCamera shuttleRightCamera = new WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
-    // public final WarriorCamera shooterCamera = new  WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+    //left and right assuming intake is the front, and you are looking at the intake from the back
+    public final WarriorCamera backRightCamera = new WarriorCamera("Camera_4_OV9281_USB_Camera", WarriorCamera.CameraConstants.BACK_RIGHT);
+    public final WarriorCamera backLeftLeftCamera = new WarriorCamera("Camera_2_OV9281_USB_Camera", WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
+    public final WarriorCamera backLeftBackCamera = new WarriorCamera("Camera_1_OV9281_USB_Camera", WarriorCamera.CameraConstants. BACK_LEFT_BACK_FACING);
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -141,7 +141,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
-        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
     }
 
     /**
@@ -167,7 +167,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
-        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
     }
 
     /**
@@ -201,7 +201,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
-        visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
     }
 
     /**
@@ -238,10 +238,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void periodic() {
-        updatePose(shuttleLeftCamera);
-
-        // updatePose(shuttleRightCamera);
-        // updatePose(shooterCamera);
+        updatePose(backRightCamera);
+        updatePose(backLeftLeftCamera);
+        updatePose(backLeftBackCamera);
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -263,8 +262,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     @Override
     public void simulationPeriodic() {
-        visionSim.update(new Pose2d(samplePoseAt(shuttleLeftCamera.getTimer()).get().getX(),
-         samplePoseAt(shuttleLeftCamera.getTimer()).get().getY(),
+        visionSim.update(new Pose2d(samplePoseAt(backRightCamera.getTimer()).get().getX(),
+         samplePoseAt(backRightCamera.getTimer()).get().getY(),
          getPigeon2().getRotation2d()));
     }
 

@@ -10,6 +10,8 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 
+import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.RobotContainer;
@@ -43,12 +45,20 @@ private static final MotorOutputConfigs TRANSITION_MOTOR_CONFIGS = new MotorOutp
 
   RobotContainer.applyTalonConfigs(shooterTransition, transitionConfig);
   RobotContainer.applyTalonConfigs(hopperTransition, transitionConfig);
+
+  SmartDashboard.putData("Transition", this);
   }
 
-public Command setTransitionSpeed(double output){
+public Command intakeTransition(double output){
     return runOnce(() -> {
-      shooterTransition.set(output);
       hopperTransition.set(output);
+    });
+  }
+
+public Command shooterTransition(double shooterOutput, double transitionOutput){
+    return runOnce(() -> {
+      shooterTransition.set(shooterOutput);
+      hopperTransition.set(transitionOutput);
     });
   }
 
@@ -60,5 +70,13 @@ public void stopTransition(){
   @Override
   public void periodic() {
     // This method will be called once per scheduler run
+  }
+
+  @Override
+  public void initSendable(SendableBuilder builder) {
+      // TODO Auto-generated method stub
+      super.initSendable(builder);
+
+      builder.addDoubleProperty("ShooterTransitionRPM", () -> shooterTransition.getVelocity().getValueAsDouble() * 60, null);
   }
 }

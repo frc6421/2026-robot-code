@@ -89,12 +89,15 @@ public class WarriorCamera implements Sendable {
     // Theta:
 
     /*The amount each camera is off from the center of the robot */
-    public final static Transform3d FRONT_LEFT_TRANSFORM3D = new Transform3d(new Translation3d(0.0, 0.0, 0.0),
+    public final static Transform3d BACK_LEFT_BACK_FACING = new Transform3d(new Translation3d(0.0, 0.0, 0.0),
         new Rotation3d(Units.degreesToRadians(-0.0), Units.degreesToRadians(0.0),
             Units.degreesToRadians(0.0)));
-    public final static Transform3d FRONT_RIGHT_TRANSFORM3D = new Transform3d(new Translation3d(0.25, -0.24, 0.21),
-        new Rotation3d(Units.degreesToRadians(-.24), Units.degreesToRadians(-12.5),
-            Units.degreesToRadians(24.6)));
+    public final static Transform3d BACK_LEFT_LEFT_FACING = new Transform3d(new Translation3d(0.0, 0.0, 0.0),
+        new Rotation3d(Units.degreesToRadians(0.0), Units.degreesToRadians(0.0),
+            Units.degreesToRadians(0.0)));
+    public final static Transform3d BACK_RIGHT = new Transform3d(new Translation3d(0.0, 0.0, 0.0),
+        new Rotation3d(Units.degreesToRadians(0.0), Units.degreesToRadians(0.0),
+            Units.degreesToRadians(0.0)));
 
     private final static AprilTagFieldLayout TAG_LAYOUT = AprilTagFieldLayout
         .loadField(AprilTagFields.k2026RebuiltAndymark);

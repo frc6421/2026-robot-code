@@ -25,4 +25,18 @@ public final class Constants {
     public static final double L1_INCHES = 6.9;
     public static final double MATCH_START_INCHES = 0;
   }
+
+  public static class IntakePositions {
+    public static final double INTAKE_RETRACTED_DEGREES = 0;
+    public static final double INTAKE_EXTENDED_DEGREES = 90;
+  }
+
+  public static class TransitionConstants {
+    public static final double TRANSITION_HOPPER_SPEED = 0.25;
+    public static final double TRANSITION_SHOOTER_SPEED = 1.0;
+  }
+
+  public static class ShooterConstants {
+    public static final double SHOOTER_RPM = 3500;
+  }
 }

@@ -19,6 +19,7 @@ import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
@@ -35,7 +36,8 @@ import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
 
-  final private TalonFX shooterMotor;
+  final private TalonFX shooterMotorLeft;
+  final private TalonFX shooterMotorRight;
   final private TalonFX shooterMotorTurn;
   
   final private TalonFXConfiguration shooterMotorConfig;
@@ -56,24 +58,28 @@ public class ShooterSubsystem extends SubsystemBase {
 
 
   public static final class ShooterConstants{
-    private static final int SHOOTER_LEFT_CAN_ID = 0;
-    private static final int SHOOTER_RIGHT_CAN_ID = 0;
+    private static final int SHOOTER_LEFT_CAN_ID = 51;
+    private static final int SHOOTER_RIGHT_CAN_ID = 52;
+    private static final int SHOOTER_STEER_CAN_ID = 50;
 
     private static final double SHOOTER_GEAR_RATIO = 0.0;
 
     private static final double SHOOTER_ROTATIONS_PER_DEGREE = 0.1;
+    private static final double MAX_RPM_ERROR = 50.0;
 
     private static final MotorOutputConfigs SHOOTER_MOTOR_CONFIG = new MotorOutputConfigs()
-    .withNeutralMode(NeutralModeValue.Coast);
+    .withNeutralMode(NeutralModeValue.Coast)
+    .withInverted(InvertedValue.Clockwise_Positive);
     private static final MotorOutputConfigs SHOOTER_MOTOR_TURN_CONFIG = new MotorOutputConfigs()
-    .withNeutralMode(NeutralModeValue.Brake);
+    .withNeutralMode(NeutralModeValue.Brake)
+    .withInverted(InvertedValue.Clockwise_Positive);
 
     private static final class SHOOTER_PID_VALUES {
     private static final double kP = 0.1;
 
     private static final double kS = 0.1;
 
-    private static final double kV = 0.1;
+    private static final double kV = 0.065;
 
     private static final double kI = 0.0;
 
@@ -95,8 +101,9 @@ public class ShooterSubsystem extends SubsystemBase {
   }
   /** Creates a new ShooterSubsystem. */
   public ShooterSubsystem() {
-    shooterMotor = new TalonFX(ShooterConstants.SHOOTER_LEFT_CAN_ID);
-    shooterMotorTurn = new TalonFX(ShooterConstants.SHOOTER_RIGHT_CAN_ID);
+    shooterMotorLeft = new TalonFX(ShooterConstants.SHOOTER_LEFT_CAN_ID);
+    shooterMotorRight = new TalonFX(ShooterConstants.SHOOTER_RIGHT_CAN_ID);
+    shooterMotorTurn = new TalonFX(ShooterConstants.SHOOTER_STEER_CAN_ID);
 
     shooterMotorConfig = new TalonFXConfiguration()
     .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG);
@@ -108,10 +115,12 @@ public class ShooterSubsystem extends SubsystemBase {
 
     shooterRequestTurn = new PositionVoltage(0).withEnableFOC(true);
     
-    shooterMotor.getConfigurator().apply(new TalonFXConfiguration());
+    shooterMotorLeft.getConfigurator().apply(new TalonFXConfiguration());
+    shooterMotorRight.getConfigurator().apply(new TalonFXConfiguration());
     shooterMotorTurn.getConfigurator().apply(new TalonFXConfiguration());
 
-    shooterMotor.getConfigurator().apply(shooterMotorConfig);
+    shooterMotorLeft.getConfigurator().apply(shooterMotorConfig);
+    shooterMotorRight.getConfigurator().apply(shooterMotorConfig);
     shooterMotorTurn.getConfigurator().apply(shooterMotorTurnConfig);
 
     PIDConfigShooter = new Slot0Configs();
@@ -130,8 +139,12 @@ public class ShooterSubsystem extends SubsystemBase {
     PIDConfigTurn.kI = ShooterConstants.SHOOTER_TURN_PID_VALUES.kI;
     PIDConfigTurn.kD = ShooterConstants.SHOOTER_TURN_PID_VALUES.kD;
 
-    shooterMotor.getConfigurator().apply(PIDConfigShooter);
+    shooterMotorLeft.getConfigurator().apply(PIDConfigShooter);
+    shooterMotorRight.getConfigurator().apply(PIDConfigShooter);
     shooterMotorTurn.getConfigurator().apply(PIDConfigTurn);
+
+    shooterMotorRight.setControl(new Follower(ShooterConstants.SHOOTER_LEFT_CAN_ID, MotorAlignmentValue.Opposed));
+    shooterMotorTurn.setPosition(0);
     SmartDashboard.putData("Shooter", this);
 
     shooterTurnSim = shooterMotorTurn.getSimState();
@@ -147,13 +160,21 @@ public class ShooterSubsystem extends SubsystemBase {
 
   }
   
-  private void setRPM(double rpm) {
+  public void setRPM(double rpm) {
 
     double rps = rpm/60.0;
 
     shooterRequest.withVelocity(rps).withFeedForward(ShooterConstants.SHOOTER_PID_VALUES.kV * rps);
 
-    shooterMotor.setControl(shooterRequest);
+    shooterMotorLeft.setControl(shooterRequest);
+  }
+
+  public double getRPM() {
+    return (shooterMotorLeft.getVelocity().getValueAsDouble() * 60);
+  }
+
+  public boolean withinErrorRPM(double setRPM) {
+    return (Math.abs(getRPM() - setRPM) <= ShooterConstants.MAX_RPM_ERROR);
   }
 
   private void turnShooter(double angle) {
@@ -161,12 +182,14 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterRequestTurn.withPosition(angle * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE);
 
     shooterMotorTurn.setControl(shooterRequestTurn);
-
-    
   }
 
-  private void stop(){
-    shooterMotor.stopMotor();
+  public void setOutput(double output) {
+    shooterMotorLeft.set(output);
+  }
+
+  public void stopShooter(){
+    shooterMotorLeft.stopMotor();
   }
 
   @Override
@@ -179,8 +202,8 @@ public class ShooterSubsystem extends SubsystemBase {
       // TODO Auto-generated method stub
       super.initSendable(builder);
 
-    builder.addDoubleProperty("Shooter RPM", () -> shooterMotor.getVelocity().getValueAsDouble()*60, null);
-    builder.addDoubleProperty("Shooter Voltage", () -> shooterMotor.getMotorVoltage().getValueAsDouble(), null);
+    builder.addDoubleProperty("Shooter RPM", () -> shooterMotorLeft.getVelocity().getValueAsDouble()*60, null);
+    builder.addDoubleProperty("Shooter Voltage", () -> shooterMotorLeft.getMotorVoltage().getValueAsDouble(), null);
     //C'est Turner.
     builder.addDoubleProperty("ShooterTurn Voltage", () -> shooterMotorTurn.getMotorVoltage().getValueAsDouble(), null);
     builder.addDoubleProperty("ShooterTurn Velocity", () -> shooterMotorTurn.getVelocity().getValueAsDouble(), null);

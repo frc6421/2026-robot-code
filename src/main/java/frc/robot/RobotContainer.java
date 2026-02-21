@@ -6,16 +6,20 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.command.ClimbCommand;
+import frc.robot.command.ShooterRevUp;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
+import frc.robot.subsystems.TransitionSubsystem;
 import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
+
+import java.net.CookieStore;
 
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.StatusCode;
@@ -29,7 +33,10 @@ import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.Subsystem;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import edu.wpi.first.wpilibj2.command.button.CommandXboxController;
 import edu.wpi.first.wpilibj2.command.button.Trigger;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
@@ -50,8 +57,11 @@ public class RobotContainer implements Subsystem{
   private final ClimbSubsystem climberSubsystem = new ClimbSubsystem();
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
+  private final TransitionSubsystem transitionSubsystem = new TransitionSubsystem();
+
   private final ClimbCommand climbDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
   private final ClimbCommand climbUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
+  private final ShooterRevUp shooterRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
@@ -111,12 +121,35 @@ public class RobotContainer implements Subsystem{
 		//  joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
 		//  joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
     //  joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    joystick.x().onTrue(climbDownCommand);
-    joystick.y().onTrue(climbUpCommand);
+    // joystick.x().onTrue(climbDownCommand);
+    // joystick.y().onTrue(climbUpCommand);
 
-    joystick.a().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(45)));
+    // joystick.a().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(45)));
 
     drivetrain.registerTelemetry(logger::telemeterize);
+
+    // joystick.x().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(Constants.IntakePositions.INTAKE_EXTENDED_DEGREES)));
+    // joystick.b().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(Constants.IntakePositions.INTAKE_RETRACTED_DEGREES)));
+    // joystick.x().whileTrue(intakeSubsystem.setIntakePivotSpeed(1.0));
+    // joystick.x().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
+
+    // joystick.y().whileTrue(intakeSubsystem.setIntakePivotSpeed(-1.0));
+    // joystick.y().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
+
+  joystick.rightTrigger().whileTrue(new SequentialCommandGroup(
+    shooterRevUp,
+    transitionSubsystem.shooterTransition(
+      Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
+      Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
+  
+  joystick.rightTrigger().onFalse(new ParallelCommandGroup(
+    new InstantCommand(() -> transitionSubsystem.stopTransition()),
+   new InstantCommand(() -> shooterSubsystem.stopShooter())));
+  // joystick.x().whileTrue(new InstantCommand(() -> shooterSubsystem.setRPM(5500)));
+  // joystick.x().whileFalse(new InstantCommand(() -> shooterSubsystem.stop()));
+  // joystick.x().whileTrue(transitionSubsystem.shooterTransition(0.9, 0.2));
+  // joystick.x().onFalse(new InstantCommand(() -> transitionSubsystem.stopTransition()));
+  
   }
 
   /**
