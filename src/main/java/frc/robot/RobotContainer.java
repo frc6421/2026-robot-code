@@ -5,8 +5,12 @@
 package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
+import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
+import frc.robot.command.autoCommands.AutoNoneCommand;
+import frc.robot.command.autoCommands.BluePreloadCommand;
+import frc.robot.command.autoCommands.RedPreloadCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -29,8 +33,12 @@ import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.filter.SlewRateLimiter;
+import edu.wpi.first.util.sendable.Sendable;
 import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
+import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
@@ -59,13 +67,19 @@ public class RobotContainer implements Subsystem{
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final TransitionSubsystem transitionSubsystem = new TransitionSubsystem();
 
-  private final ClimbCommand climbDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
-  private final ClimbCommand climbUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
-  private final ShooterRevUp shooterRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
+  private final ClimbCommand climbGoesUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
+  private final ClimbCommand climbGoesDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
+  private final ShooterRevUp shootingRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
+  private final BluePreloadCommand bluePreloadCommand = new BluePreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedPreloadCommand redPreloadCommand = new RedPreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final AutoNoneCommand autoNoneCommand = new AutoNoneCommand();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
 			.withDriveRequestType(DriveRequestType.OpenLoopVoltage);
+
+  private SendableChooser<Command> autoChooser;
+  private SendableChooser<Double> hoodChooser;
 
   private final SlewRateLimiter xDriveSlew = new SlewRateLimiter(Constants.DriveConstants.DRIVE_SLEW_RATE);
 	private final SlewRateLimiter yDriveSlew = new SlewRateLimiter(Constants.DriveConstants.DRIVE_SLEW_RATE);
@@ -76,6 +90,14 @@ public class RobotContainer implements Subsystem{
 
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
+    autoChooser = new SendableChooser<>();
+    autoChooser.setDefaultOption("No Auto", autoNoneCommand);
+    autoChooser.addOption("Red Preload", redPreloadCommand);
+    autoChooser.addOption("Blue Preload", bluePreloadCommand);
+
+    hoodChooser = new SendableChooser<>();
+    hoodChooser.addOption("Pass", Constants.ShooterConstants.ACTUATOR_PASSING);
+    hoodChooser.setDefaultOption("Shoot", Constants.ShooterConstants.ACTUATOR_SHOOTING);
     // Configure the trigger bindings
 
 /**
@@ -92,6 +114,9 @@ public class RobotContainer implements Subsystem{
  */
 
     configureBindings();
+
+    SmartDashboard.putData("Auto Chooser", autoChooser);
+    SmartDashboard.putData("Hood Chooser", hoodChooser);
   }
 
   /**
@@ -130,26 +155,52 @@ public class RobotContainer implements Subsystem{
 
     // joystick.x().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(Constants.IntakePositions.INTAKE_EXTENDED_DEGREES)));
     // joystick.b().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(Constants.IntakePositions.INTAKE_RETRACTED_DEGREES)));
-    // joystick.x().whileTrue(intakeSubsystem.setIntakePivotSpeed(1.0));
-    // joystick.x().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
+    
+    //intake
+    joystick.x().onTrue(new SequentialCommandGroup(
+      intakeSubsystem.setIntakeSpeed(.72),
+      intakeSubsystem.setIntakePivotSpeed(.5),
+      transitionSubsystem.intakeTransition(Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
+    joystick.b().onTrue(new SequentialCommandGroup(
+      new InstantCommand(() -> intakeSubsystem.stopIntakePivot()),
+      new InstantCommand(() -> intakeSubsystem.stopIntake()),
+      new InstantCommand(() -> transitionSubsystem.stopTransition())
+    ));
 
-    // joystick.y().whileTrue(intakeSubsystem.setIntakePivotSpeed(-1.0));
-    // joystick.y().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
-
+    //barf
+    joystick.rightBumper().whileTrue(
+      transitionSubsystem.shooterTransition(
+        Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
+        Constants.TransitionConstants.TRANSITION_HOPPER_SPEED));
+    joystick.rightBumper().onFalse(new InstantCommand(() -> transitionSubsystem.stopTransition()));
+  
+  //shooting
   joystick.rightTrigger().whileTrue(new SequentialCommandGroup(
-    shooterRevUp,
+    shootingRevUp,
+    new InstantCommand(() -> shooterSubsystem.extendActuator(getHoodSelected())),
     transitionSubsystem.shooterTransition(
       Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
       Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
-  
   joystick.rightTrigger().onFalse(new ParallelCommandGroup(
     new InstantCommand(() -> transitionSubsystem.stopTransition()),
-   new InstantCommand(() -> shooterSubsystem.stopShooter())));
-  // joystick.x().whileTrue(new InstantCommand(() -> shooterSubsystem.setRPM(5500)));
-  // joystick.x().whileFalse(new InstantCommand(() -> shooterSubsystem.stop()));
-  // joystick.x().whileTrue(transitionSubsystem.shooterTransition(0.9, 0.2));
-  // joystick.x().onFalse(new InstantCommand(() -> transitionSubsystem.stopTransition()));
-  
+    new InstantCommand(() -> shooterSubsystem.stopShooter())));
+
+  joystick.leftBumper().whileTrue(drivetrain.alignCommand( () -> (DriverStation.getAlliance().get() == Alliance.Blue) ? 
+  TrajectoryConstants.RED_ALLIANCE :
+  TrajectoryConstants.BLUE_ALLIANCE));
+
+
+  joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
+  joystick.start().onTrue(drivetrain.resetGyro());
+
+  //passing
+
+  //climb
+  joystick.y().onTrue(climbGoesUpCommand);
+  joystick.a().onTrue(climbGoesDownCommand);
+
+  // joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.38)));
+  // joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.02)));
   }
 
   /**
@@ -159,7 +210,15 @@ public class RobotContainer implements Subsystem{
    */
   public Command getAutonomousCommand() {
     // An example command will be run in autonomous
-    return null;
+    return autoChooser.getSelected();
+  }
+
+  public double getHoodSelected() {
+    return hoodChooser.getSelected();
+  }
+
+  public void autoVisionGyroReset() {
+    drivetrain.visionGyroReset();
   }
 
   @Override

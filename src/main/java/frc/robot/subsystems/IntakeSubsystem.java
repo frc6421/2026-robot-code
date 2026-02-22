@@ -49,7 +49,7 @@ public class IntakeSubsystem extends SubsystemBase {
    
     private static final MotorOutputConfigs INTAKE_MOTOR_CONFIGS = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Coast)
-    .withInverted(InvertedValue.Clockwise_Positive);
+    .withInverted(InvertedValue.CounterClockwise_Positive);
 
     private static final MotorOutputConfigs INTAKE_PIVOT_CONFIGS = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Brake)
@@ -177,5 +177,7 @@ public class IntakeSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Pivot position", () -> intakePivot.getPosition().getValueAsDouble(), null);
     builder.addDoubleProperty("Pivot current", () -> intakePivot.getSupplyCurrent().getValueAsDouble(), null);
     builder.addDoubleProperty("Pivot stator current", () -> intakePivot.getStatorCurrent().getValueAsDouble(), null);
+
+    builder.addDoubleProperty("Intake RPM", () -> intakeMotor.getVelocity().getValueAsDouble() * 60, null);
   }
 }

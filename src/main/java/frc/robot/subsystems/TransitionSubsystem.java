@@ -62,6 +62,11 @@ public Command shooterTransition(double shooterOutput, double transitionOutput){
     });
   }
 
+public void passingTransition(double shooterOutput, double transitionOutput){
+      shooterTransition.set(shooterOutput);
+      hopperTransition.set(transitionOutput);
+  }
+
 public void stopTransition(){
   shooterTransition.stopMotor();
   hopperTransition.stopMotor();

@@ -4,6 +4,13 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
  * constants. This class should not be used for any other purpose. All constants should be declared
@@ -21,6 +28,46 @@ public final class Constants {
     public static final double DRIVE_SLEW_RATE = 10.0;
   }
 
+  public static class AlignConstants {
+    public static double ALIGN_P = 4;
+  }
+
+  public static class AutoConstants {
+    public static final double AUTO_MAX_VELOCITY_METERS_PER_SECOND = 4.0; // TODO update value
+    public static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 5.0; // TODO update value
+    public static final double AUTO_MAX_ANGULAR_ACCELERATION_RAD_PER_SEC = 2 * Math.PI; // TODO update value
+    public static final double AUTO_MAX_ANGULAR_VELOCITY_RAD_PER_SEC = 2 * Math.PI; // TODO update value
+
+    public static final double X_DRIVE_P = 2.05;
+    public static final double X_DRIVE_I = 0;
+    public static final double X_DRIVE_D = 0.1;
+
+    public static final double Y_DRIVE_P = 2.05;
+    public static final double Y_DRIVE_I = 0;
+    public static final double Y_DRIVE_D = 0.1;
+
+    public static final double THETA_P = 10.0;
+    public static final double THETA_I = 0;
+    public static final double THETA_D = 0;
+  }
+
+  public static class TrajectoryConstants {
+    public static final Pose2d BLUE_OUTPOST = new Pose2d (new Translation2d(Inches.of(0.5), Inches.of(25.62)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d RED_OUTPOST = new Pose2d (new Translation2d(Inches.of(649.62), Inches.of(291.02)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d BLUE_TOWER = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d RED_TOWER = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d NEUTRAL_BO = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(67.37)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d NEUTRAL_BD = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d NEUTRAL_RO = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d NEUTRAL_RD = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(67.37)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d BLUE_BUMP_O = new Pose2d (new Translation2d(Inches.of(181.56), Inches.of(98.06)), new Rotation2d(Degrees.of(45)));
+    public static final Pose2d BLUE_BUMP_D = new Pose2d (new Translation2d(Inches.of(181.56), Inches.of(218.58)), new Rotation2d(Degrees.of(315)));
+    public static final Pose2d RED_BUMP_O = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(218.58)), new Rotation2d(Degrees.of(45)));
+    public static final Pose2d RED_BUMP_D = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(315)));
+  }
+
   public static class ClimbPositions {
     public static final double L1_INCHES = 6.9;
     public static final double MATCH_START_INCHES = 0;
@@ -29,6 +76,7 @@ public final class Constants {
   public static class IntakePositions {
     public static final double INTAKE_RETRACTED_DEGREES = 0;
     public static final double INTAKE_EXTENDED_DEGREES = 90;
+    public static final double INTAKE_SPEED = 0.72;
   }
 
   public static class TransitionConstants {
@@ -38,5 +86,7 @@ public final class Constants {
 
   public static class ShooterConstants {
     public static final double SHOOTER_RPM = 3500;
+    public static final double ACTUATOR_PASSING = 0.38;
+    public static final double ACTUATOR_SHOOTING = 0.02;
   }
 }

@@ -27,6 +27,7 @@ import com.ctre.phoenix6.sim.TalonFXSimState;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -39,6 +40,9 @@ public class ShooterSubsystem extends SubsystemBase {
   final private TalonFX shooterMotorLeft;
   final private TalonFX shooterMotorRight;
   final private TalonFX shooterMotorTurn;
+
+  private final Servo leftActuator;
+  private final Servo rightActuator;
   
   final private TalonFXConfiguration shooterMotorConfig;
   final private TalonFXConfiguration shooterMotorTurnConfig;
@@ -104,6 +108,15 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorLeft = new TalonFX(ShooterConstants.SHOOTER_LEFT_CAN_ID);
     shooterMotorRight = new TalonFX(ShooterConstants.SHOOTER_RIGHT_CAN_ID);
     shooterMotorTurn = new TalonFX(ShooterConstants.SHOOTER_STEER_CAN_ID);
+
+    leftActuator = new Servo(0);
+    rightActuator = new Servo(1);
+
+    leftActuator.enableDeadbandElimination(true);
+    rightActuator.enableDeadbandElimination(true);
+
+    leftActuator.setBoundsMicroseconds(2000, 1501, 1500, 1499, 1000);
+    rightActuator.setBoundsMicroseconds(2000, 1501, 1500, 1499, 1000);
 
     shooterMotorConfig = new TalonFXConfiguration()
     .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG);
@@ -184,6 +197,11 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorTurn.setControl(shooterRequestTurn);
   }
 
+  public void extendActuator(double length) {
+    leftActuator.set(length);
+    rightActuator.set(length);
+  }
+
   public void setOutput(double output) {
     shooterMotorLeft.set(output);
   }
@@ -210,6 +228,8 @@ public class ShooterSubsystem extends SubsystemBase {
     builder.addDoubleProperty("ShooterTurn Rotations", () -> shooterMotorTurn.getPosition().getValueAsDouble(), null);
     builder.addDoubleProperty("ShooterTurn Angle", () -> shooterMotorTurn.getPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE, null);
     builder.addDoubleProperty("ShooterTurn SetAngle", setAngle, null);
+
+    builder.addDoubleProperty("Actuator Length", () -> leftActuator.getPosition(), null);
   }
 
 public void simulationPeriodic() {
