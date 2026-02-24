@@ -17,6 +17,7 @@ public class RedPreloadCommand extends SequentialCommandGroup {
   /** Creates a new RedPreload. */
   public RedPreloadCommand(ClimbSubsystem climbSubsystem, CommandSwerveDrivetrain driveSubsystem,
   ShooterSubsystem shooterSubsystem, TransitionSubsystem transitionSubsystem) {
+    
     addCommands(
       driveSubsystem.alignCommand(() -> Constants.TrajectoryConstants.RED_ALLIANCE),
       new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM),

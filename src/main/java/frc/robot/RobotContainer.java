@@ -8,7 +8,6 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
-import frc.robot.command.autoCommands.AutoNoneCommand;
 import frc.robot.command.autoCommands.BluePreloadCommand;
 import frc.robot.command.autoCommands.RedPreloadCommand;
 import frc.robot.generated.TunerConstants;
@@ -72,7 +71,6 @@ public class RobotContainer implements Subsystem{
   private final ShooterRevUp shootingRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
   private final BluePreloadCommand bluePreloadCommand = new BluePreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final RedPreloadCommand redPreloadCommand = new RedPreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  private final AutoNoneCommand autoNoneCommand = new AutoNoneCommand();
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
@@ -91,7 +89,6 @@ public class RobotContainer implements Subsystem{
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     autoChooser = new SendableChooser<>();
-    autoChooser.setDefaultOption("No Auto", autoNoneCommand);
     autoChooser.addOption("Red Preload", redPreloadCommand);
     autoChooser.addOption("Blue Preload", bluePreloadCommand);
 
