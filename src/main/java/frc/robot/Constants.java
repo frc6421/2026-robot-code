@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,11 +30,12 @@ public final class Constants {
   }
 
   public static class AlignConstants {
-    public static double ALIGN_P = 4;
+    public static double ALIGN_P = 2.0;
     public static double MAX_VELOCITY = 2.5;
     public static double MAX_ACCELERATION = 4.5;
+    public static double VISION_ERROR_ACCOUNT = 0.15;
 
-    public static double MAX_POSITION_ERROR_METERS = 0.015;
+    public static double MAX_POSITION_ERROR_METERS = 0.08;
     public static double MAX_DEGREES_ERROR = 0.5;
   }
 
@@ -60,9 +62,9 @@ public final class Constants {
     public static final Pose2d BLUE_OUTPOST = new Pose2d (new Translation2d(Inches.of(0.5), Inches.of(25.62)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d RED_OUTPOST = new Pose2d (new Translation2d(Inches.of(649.62), Inches.of(291.02)), new Rotation2d(Degrees.of(360)));
     public static final Pose2d BLUE_TOWER = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0).in(Meters), Inches.of(146.86).in(Meters)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d RED_TOWER = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
-    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12).in(Meters), Inches.of(169.78).in(Meters)), new Rotation2d(Degrees.of(360)));
     public static final Pose2d NEUTRAL_BO = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(67.37)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d NEUTRAL_BD = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d NEUTRAL_RO = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));

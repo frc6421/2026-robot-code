@@ -31,16 +31,20 @@ import edu.wpi.first.math.trajectory.TrapezoidProfile;
 import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
 import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.WarriorCamera;
+import frc.robot.Constants.AlignConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -61,8 +65,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public final WarriorCamera backLeftBackCamera = new WarriorCamera("Camera_1_OV9281_USB_Camera", WarriorCamera.CameraConstants. BACK_LEFT_BACK_FACING);
 
     private StructPublisher<Pose2d> posePublisher;
-
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+
+    private Optional<Pose2d> targetPose = Optional.empty();
+    private Pose2d currentPose = new Pose2d();
+    private double xVelocity = 0.0;
 
     private final ProfiledPIDController thetaController = new ProfiledPIDController(
       Constants.AutoConstants.THETA_P, Constants.AutoConstants.THETA_I, Constants.AutoConstants.THETA_D,
@@ -89,10 +96,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(2.5, 4.5));
+     new Constraints(4.5, 8.5));
     private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(2.5, 4.5));
+     new Constraints(4.5, 8.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -291,6 +298,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         updatePose(backRightCamera);
         updatePose(backLeftLeftCamera);
         updatePose(backLeftBackCamera);
+
+        if (!targetPose.equals(Optional.empty())) {
+        SmartDashboard.putNumber("X_Target", targetPose.get().getX());
+        }
+        SmartDashboard.putNumber("X_Current", currentPose.getX());
+        SmartDashboard.putNumber("X_Output_Vel", xVelocity);
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -463,27 +476,43 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yController.setTolerance(.015, .1);
         return applyRequest(() ->  { 
           Pose2d currentPose = getState().Pose;
-          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -.5, .5);
-          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), .5, .5);
+          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -1.5, 1.5);
+          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), 1.5, 1.5);
 
           return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
-        }).until(() -> xController.atSetpoint() && yController.atSetpoint() && alignAngleRequest.HeadingController.atSetpoint());
+        }).beforeStarting(() -> {
+            Pose2d currentPose = getState().Pose;
+            xController.reset();
+            yController.reset();
+    })  
+        .until(() -> xController.atSetpoint() && yController.atSetpoint() && alignAngleRequest.HeadingController.atSetpoint());
         //.andThen(this.runOnce(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
     }
 
     public Command profiledAlignCommand(Supplier<Pose2d> targetPose) {
         alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
         alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
-        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .1);
-        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .1);
+        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
+        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
         return applyRequest(() ->  {
+
           posePublisher.accept(targetPose.get());
           Pose2d currentPose = getState().Pose;
-          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getY());
-          double yVelocity = yController.calculate(currentPose.getX(), targetPose.get().getY());
 
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getX());
+          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose.get().getY());
+          
           return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
-        }).until(() -> xController.atSetpoint() && yController.atSetpoint() && alignAngleRequest.HeadingController.atSetpoint());
-        //.andThen(this.runOnce(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+        }).beforeStarting(() -> {
+            Pose2d currentPose = getState().Pose;
+            xControllerProfiled.reset(currentPose.getX(), getState().Speeds.vxMetersPerSecond);  
+            yControllerProfiled.reset(currentPose.getY(), getState().Speeds.vyMetersPerSecond);  
+        }
+        ).until(() -> 
+        xControllerProfiled.atGoal() && 
+        yControllerProfiled.atGoal() && 
+        alignAngleRequest.HeadingController.atSetpoint())
+        .andThen(applyRequest(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+        
     }
 }

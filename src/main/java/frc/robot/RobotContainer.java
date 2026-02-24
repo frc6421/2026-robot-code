@@ -185,7 +185,7 @@ public class RobotContainer implements Subsystem{
     new InstantCommand(() -> transitionSubsystem.stopTransition()),
     new InstantCommand(() -> shooterSubsystem.stopShooter())));
 
-  joystick.leftBumper().whileTrue(drivetrain.alignCommand( 
+  joystick.leftBumper().whileTrue(drivetrain.profiledAlignCommand( 
       () -> DriverStation.getAlliance()
       .map(alliance ->
         alliance == Alliance.Blue
