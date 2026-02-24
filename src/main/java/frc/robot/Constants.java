@@ -4,11 +4,20 @@
 
 package frc.robot;
 
+import static edu.wpi.first.units.Units.Degrees;
+import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
+
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
+
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
 import edu.wpi.first.math.geometry.Rotation3d;
 import edu.wpi.first.math.geometry.Transform3d;
 import edu.wpi.first.math.geometry.Translation3d;
+import edu.wpi.first.math.util.Units;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide numerical or boolean
@@ -27,21 +36,92 @@ public final class Constants {
     public static final double DRIVE_SLEW_RATE = 10.0;
   }
 
+  public static class AlignConstants {
+    public static double ALIGN_P = 2.0;
+    public static double MAX_VELOCITY = 2.5;
+    public static double MAX_ACCELERATION = 4.5;
+    public static double VISION_ERROR_ACCOUNT = 0.15;
+
+    public static double MAX_POSITION_ERROR_METERS = 0.08;
+    public static double MAX_DEGREES_ERROR = 0.5;
+  }
+
+  public static class AutoConstants {
+    public static final double AUTO_MAX_VELOCITY_METERS_PER_SECOND = 4.0; // TODO update value
+    public static final double AUTO_MAX_ACCELERATION_METERS_PER_SECOND_SQUARED = 5.0; // TODO update value
+    public static final double AUTO_MAX_ANGULAR_ACCELERATION_RAD_PER_SEC = 2 * Math.PI; // TODO update value
+    public static final double AUTO_MAX_ANGULAR_VELOCITY_RAD_PER_SEC = 2 * Math.PI; // TODO update value
+
+    public static final double X_DRIVE_P = 2.05;
+    public static final double X_DRIVE_I = 0;
+    public static final double X_DRIVE_D = 0.1;
+
+    public static final double Y_DRIVE_P = 2.05;
+    public static final double Y_DRIVE_I = 0;
+    public static final double Y_DRIVE_D = 0.1;
+
+    public static final double THETA_P = 10.0;
+    public static final double THETA_I = 0;
+    public static final double THETA_D = 0;
+  }
+
+  public static class TrajectoryConstants {
+    public static final Pose2d BLUE_OUTPOST = new Pose2d (new Translation2d(Inches.of(0.5), Inches.of(25.62)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d RED_OUTPOST = new Pose2d (new Translation2d(Inches.of(649.62), Inches.of(291.02)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d BLUE_TOWER = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0).in(Meters), Inches.of(146.86).in(Meters)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d RED_TOWER = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12).in(Meters), Inches.of(169.78).in(Meters)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d NEUTRAL_BO = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(67.37)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d NEUTRAL_BD = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d NEUTRAL_RO = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d NEUTRAL_RD = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(67.37)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d BLUE_BUMP_O = new Pose2d (new Translation2d(Inches.of(181.56), Inches.of(98.06)), new Rotation2d(Degrees.of(45)));
+    public static final Pose2d BLUE_BUMP_D = new Pose2d (new Translation2d(Inches.of(181.56), Inches.of(218.58)), new Rotation2d(Degrees.of(315)));
+    public static final Pose2d RED_BUMP_O = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(218.58)), new Rotation2d(Degrees.of(45)));
+    public static final Pose2d RED_BUMP_D = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(315)));
+  }
+
   public static class ClimbPositions {
     public static final double L1_INCHES = 6.9;
     public static final double MATCH_START_INCHES = 0;
   }
 
+  public static class IntakePositions {
+    public static final double INTAKE_RETRACTED_DEGREES = 0;
+    public static final double INTAKE_EXTENDED_DEGREES = 90;
+    public static final double INTAKE_SPEED = 0.72;
+  }
+
+  public static class TransitionConstants {
+    public static final double TRANSITION_HOPPER_SPEED = 0.25;
+    public static final double TRANSITION_SHOOTER_SPEED = 1.0;
+  }
+
+  public static class ShooterConstants {
+    public static final double SHOOTER_RPM = 3500;
+    public static final double ACTUATOR_PASSING = 0.38;
+    public static final double ACTUATOR_SHOOTING = 0.02;
+  }
+
   public static class VisionConstants {
-    public static final Transform3d FRONT_CAM_TRANSFORM = new Transform3d(
-      new Translation3d(0, 0, 0),
-      new Rotation3d(0,0,0));
-    public static final Transform3d LEFT_CAM_TRANSFORM = new Transform3d(
-      new Translation3d(0, 0, 0),
-      new Rotation3d());
+
+     public static final Transform3d LEFT_CAM_TRANSFORM = new Transform3d(
+        new Translation3d(-Units.inchesToMeters(11.868), -Units.inchesToMeters(10.2795), Units.inchesToMeters(6.543)),
+        new Rotation3d(0, 0, -Math.PI)
+    );
+
+    // Back Camera
+    public static final Transform3d BACK_CAM_TRANSFORM = new Transform3d(
+        new Translation3d(Units.inchesToMeters(13.486), Units.inchesToMeters(9.374), Units.inchesToMeters(6.543)),
+        new Rotation3d(0, 0, Math.PI)
+    );
+
+    // Right Camera
     public static final Transform3d RIGHT_CAM_TRANSFORM = new Transform3d(
-      new Translation3d(0, 0, 0),
-      new Rotation3d(0,0,0));
+        new Translation3d(-Units.inchesToMeters(9.6175), -Units.inchesToMeters(10.5465), Units.inchesToMeters(6.443)),
+        new Rotation3d(0, 0, Math.PI)
+    );
 
     public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout
         .loadField(AprilTagFields.k2026RebuiltAndymark);

@@ -10,23 +10,40 @@ import org.photonvision.simulation.VisionSystemSim;
 import com.ctre.phoenix6.SignalLogger;
 import com.ctre.phoenix6.Utils;
 import com.ctre.phoenix6.swerve.SwerveDrivetrainConstants;
+import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveModuleConstants;
 import com.ctre.phoenix6.swerve.SwerveRequest;
+import com.ctre.phoenix6.swerve.SwerveRequest.ForwardPerspectiveValue;
+import com.ctre.phoenix6.swerve.SwerveRequest.FieldCentricFacingAngle;
 
 import edu.wpi.first.apriltag.AprilTagFieldLayout;
 import edu.wpi.first.apriltag.AprilTagFields;
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.Matrix;
+import edu.wpi.first.math.controller.HolonomicDriveController;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.controller.ProfiledPIDController;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
+import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
+import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StringPublisher;
+import edu.wpi.first.networktables.StructPublisher;
+import edu.wpi.first.util.struct.Struct;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
 import edu.wpi.first.wpilibj.RobotController;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
+import frc.robot.Constants;
+import frc.robot.Constants.AlignConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -45,6 +62,44 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public final WarriorCamera vision = new WarriorCamera(this);
     // public final WarriorCamera shuttleRightCamera = new WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
     // public final WarriorCamera shooterCamera = new  WarriorCamera("Camera_6_OV9281_USB_Camera", WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+    //left and right assuming intake is the front, and you are looking at the intake from the back
+
+    private StructPublisher<Pose2d> posePublisher;
+    private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+
+    private Optional<Pose2d> targetPose = Optional.empty();
+    private Pose2d currentPose = new Pose2d();
+    private double xVelocity = 0.0;
+
+    private final ProfiledPIDController thetaController = new ProfiledPIDController(
+      Constants.AutoConstants.THETA_P, Constants.AutoConstants.THETA_I, Constants.AutoConstants.THETA_D,
+      new TrapezoidProfile.Constraints(Constants.AutoConstants.AUTO_MAX_ANGULAR_VELOCITY_RAD_PER_SEC,
+          Constants.AutoConstants.AUTO_MAX_ANGULAR_ACCELERATION_RAD_PER_SEC));
+    
+    private final SwerveRequest.FieldCentricFacingAngle alignAngleRequest = new FieldCentricFacingAngle()
+    .withDriveRequestType(DriveRequestType.Velocity)
+    .withForwardPerspective(ForwardPerspectiveValue.BlueAlliance);
+
+    private final HolonomicDriveController holonomicDriveController = new HolonomicDriveController(
+      // Position controllers
+      new PIDController(Constants.AutoConstants.X_DRIVE_P, Constants.AutoConstants.X_DRIVE_I, Constants.AutoConstants.X_DRIVE_D),
+      new PIDController(Constants.AutoConstants.Y_DRIVE_P, Constants.AutoConstants.Y_DRIVE_I, Constants.AutoConstants.Y_DRIVE_D),
+      thetaController);
+
+    //Align PID Controllers
+    private final PIDController xController = new PIDController(Constants.AlignConstants.ALIGN_P,
+        Constants.AutoConstants.X_DRIVE_I,
+        Constants.AutoConstants.X_DRIVE_D);
+    private final PIDController yController = new PIDController(Constants.AlignConstants.ALIGN_P,
+        Constants.AutoConstants.Y_DRIVE_I,
+        Constants.AutoConstants.Y_DRIVE_D);
+
+    private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
+     0.0, 0.0,
+     new Constraints(4.5, 8.5));
+    private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
+     0.0, 0.0,
+     new Constraints(4.5, 8.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -141,6 +196,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
     }
 
     /**
@@ -167,6 +223,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        
+        posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
     }
 
     /**
@@ -201,6 +259,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
+        posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
     }
 
     /**
@@ -244,6 +303,11 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             estimate.timestamp(),
             estimate.stdDevs());
         }
+        if (!targetPose.equals(Optional.empty())) {
+        SmartDashboard.putNumber("X_Target", targetPose.get().getX());
+        }
+        SmartDashboard.putNumber("X_Current", currentPose.getX());
+        SmartDashboard.putNumber("X_Output_Vel", xVelocity);
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -340,6 +404,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     //     //     }
     // }
 
+     public Command resetGyro() {
+        return runOnce(() -> getPigeon2().reset());
+    }
+
     /**
      * Return the pose at a given timestamp, if the buffer is not empty.
      *
@@ -349,5 +417,53 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     @Override
     public Optional<Pose2d> samplePoseAt(double timestampSeconds) {
         return super.samplePoseAt(Utils.fpgaToCurrentTime(timestampSeconds));
+    }
+
+    public Command alignCommand(Supplier<Pose2d> targetPose) {
+        posePublisher.accept(targetPose.get());
+        alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
+        alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
+        xController.setTolerance(.015, .1);
+        yController.setTolerance(.015, .1);
+        return applyRequest(() ->  { 
+          Pose2d currentPose = getState().Pose;
+          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -1.5, 1.5);
+          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), 1.5, 1.5);
+
+          return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+        }).beforeStarting(() -> {
+            Pose2d currentPose = getState().Pose;
+            xController.reset();
+            yController.reset();
+    })  
+        .until(() -> xController.atSetpoint() && yController.atSetpoint() && alignAngleRequest.HeadingController.atSetpoint());
+        //.andThen(this.runOnce(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+    }
+
+    public Command profiledAlignCommand(Supplier<Pose2d> targetPose) {
+        alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
+        alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
+        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
+        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
+        return applyRequest(() ->  {
+
+          posePublisher.accept(targetPose.get());
+          Pose2d currentPose = getState().Pose;
+
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getX());
+          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose.get().getY());
+          
+          return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+        }).beforeStarting(() -> {
+            Pose2d currentPose = getState().Pose;
+            xControllerProfiled.reset(currentPose.getX(), getState().Speeds.vxMetersPerSecond);  
+            yControllerProfiled.reset(currentPose.getY(), getState().Speeds.vyMetersPerSecond);  
+        }
+        ).until(() -> 
+        xControllerProfiled.atGoal() && 
+        yControllerProfiled.atGoal() && 
+        alignAngleRequest.HeadingController.atSetpoint())
+        .andThen(applyRequest(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+        
     }
 }

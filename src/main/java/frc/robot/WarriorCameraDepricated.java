@@ -86,15 +86,18 @@ public class WarriorCameraDepricated implements Sendable {
     // X: 9.6175in
     // Y: 10.5465in
     // Z: 6.443in
-    // Theta:
+    // -.24, -.27, .10
 
     /*The amount each camera is off from the center of the robot */
-    public final static Transform3d FRONT_LEFT_TRANSFORM3D = new Transform3d(new Translation3d(0.0, 0.0, 0.0),
-        new Rotation3d(Units.degreesToRadians(-0.0), Units.degreesToRadians(0.0),
-            Units.degreesToRadians(0.0)));
-    public final static Transform3d FRONT_RIGHT_TRANSFORM3D = new Transform3d(new Translation3d(0.25, -0.24, 0.21),
-        new Rotation3d(Units.degreesToRadians(-.24), Units.degreesToRadians(-12.5),
-            Units.degreesToRadians(24.6)));
+    public final static Transform3d BACK_LEFT_BACK_FACING = new Transform3d(new Translation3d(-.112, -.231, .19),
+        new Rotation3d(Units.degreesToRadians(0.5), Units.degreesToRadians(-24.5),
+            Units.degreesToRadians(-0.5)));
+    public final static Transform3d BACK_LEFT_LEFT_FACING = new Transform3d(new Translation3d(.259, -.279, 0.022),
+        new Rotation3d(Units.degreesToRadians(-0.6), Units.degreesToRadians(-25.2),
+            Units.degreesToRadians(91.0)));
+    public final static Transform3d BACK_RIGHT = new Transform3d(new Translation3d(0.242, -0.215, 0.135),
+        new Rotation3d(Units.degreesToRadians(0.8), Units.degreesToRadians(-22.9),
+            Units.degreesToRadians(-91.6)));
 
     private final static AprilTagFieldLayout TAG_LAYOUT = AprilTagFieldLayout
         .loadField(AprilTagFields.k2026RebuiltAndymark);
@@ -113,7 +116,7 @@ public class WarriorCameraDepricated implements Sendable {
      * Standard Deviation constants, tells the robot how much to trust this data
      */
     private final static Matrix<N3, N1> LOW_SD = VecBuilder.fill(
-      0.1, 0.1, Units.degreesToRadians(0.1)); // Units of meters and radians
+      0.00001, 0.00001, Units.degreesToRadians(0.00001)); // Units of meters and radians
     private final static Matrix<N3, N1> HIGH_SD = VecBuilder.fill(
       0.9, 0.9, Units.degreesToRadians(0.9)); // Units of meters and radians
 
@@ -352,8 +355,8 @@ public class WarriorCameraDepricated implements Sendable {
     } else {
       //Invalid data in terms of concistency is not thrown out, it is rather trusted far less
       standardDeviation = CameraConstants.HIGH_SD;
-      // cameraReliable.set(false);
-      // return false;
+      cameraReliable.set(false);
+      return false;
     }
 
     /*Apply alliance offsets if there are any */
