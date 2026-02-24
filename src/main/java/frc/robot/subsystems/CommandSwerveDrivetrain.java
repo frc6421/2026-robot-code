@@ -28,7 +28,10 @@ import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.numbers.N1;
 import edu.wpi.first.math.numbers.N3;
 import edu.wpi.first.math.trajectory.TrapezoidProfile;
+import edu.wpi.first.math.trajectory.TrapezoidProfile.Constraints;
 import edu.wpi.first.math.util.Units;
+import edu.wpi.first.networktables.NetworkTableInstance;
+import edu.wpi.first.networktables.StructPublisher;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Notifier;
@@ -57,6 +60,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public final WarriorCamera backLeftLeftCamera = new WarriorCamera("Camera_2_OV9281_USB_Camera", WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
     public final WarriorCamera backLeftBackCamera = new WarriorCamera("Camera_1_OV9281_USB_Camera", WarriorCamera.CameraConstants. BACK_LEFT_BACK_FACING);
 
+    private StructPublisher<Pose2d> posePublisher;
+
+    private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
+
     private final ProfiledPIDController thetaController = new ProfiledPIDController(
       Constants.AutoConstants.THETA_P, Constants.AutoConstants.THETA_I, Constants.AutoConstants.THETA_D,
       new TrapezoidProfile.Constraints(Constants.AutoConstants.AUTO_MAX_ANGULAR_VELOCITY_RAD_PER_SEC,
@@ -79,6 +86,13 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final PIDController yController = new PIDController(Constants.AlignConstants.ALIGN_P,
         Constants.AutoConstants.Y_DRIVE_I,
         Constants.AutoConstants.Y_DRIVE_D);
+
+    private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
+     0.0, 0.0,
+     new Constraints(2.5, 4.5));
+    private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
+     0.0, 0.0,
+     new Constraints(2.5, 4.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -175,6 +189,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
+        posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
     }
 
     /**
@@ -201,6 +216,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
+        posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
     }
 
     /**
@@ -235,6 +251,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
+        posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
     }
 
     /**
@@ -374,37 +391,54 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double cameraAngle = 0.0;
 
 
-        if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget()) {
-            if (backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2) {
+        if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
+            if (backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2) {
                 cameraAngle = 
             (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + 
-            backLeftBackCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-            }
-
-            if (backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() >= 2) {
+            backLeftBackCamera.getPose2d().getRotation().getDegrees() + 
+            backRightCamera.getPose2d().getRotation().getDegrees()) / 3.0;
+            // 1 cam has 2 tags others dont
+            } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2) && backLeftBackCamera.getNumberOfTags() >= 2) {
                 cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees();
-            }
 
-            if (backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() < 2) {
+            } else if (backLeftLeftCamera.getNumberOfTags() >= 2 && (backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2)) {
                 cameraAngle = backLeftLeftCamera.getPose2d().getRotation().getDegrees();
+
+            } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 ) && backRightCamera.getNumberOfTags() >= 2) {
+                cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
+            }
+            // 2 cams have 2 tags other doesnt
+             else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2) && backLeftBackCamera.getNumberOfTags() < 2) {
+                cameraAngle = (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
+
+            } else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2) && backRightCamera.getNumberOfTags() < 2) {
+                cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backLeftLeftCamera.getPose2d().getRotation().getDegrees()) / 2.0;
+
+            } else if ((backRightCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 ) && backLeftLeftCamera.getNumberOfTags() < 2) {
+                cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
             }
 
-            if (backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2) {
+            else if (backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2 ) {
                 cameraAngle = 
             (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + 
-            backLeftBackCamera.getPose2d().getRotation().getDegrees()) / 2.0;
+            backLeftBackCamera.getPose2d().getRotation().getDegrees() + 
+            backRightCamera.getPose2d().getRotation().getDegrees()) / 3.0;
             }
         } 
         
-        if (backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget()) {
+        else if (backLeftLeftCamera.hasTarget() && (!backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget())) {
             cameraAngle = backLeftLeftCamera.getPose2d().getRotation().getDegrees();
         }
 
-        if (!backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget()) {
+        else if ((!backLeftLeftCamera.hasTarget() && !backRightCamera.hasTarget()) && backLeftBackCamera.hasTarget()) {
             cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees();
         }
 
-        if (!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget()) {
+        else if ((!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget()) && backRightCamera.hasTarget()) {
+            cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
+        }
+
+        if (!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()) {
             cameraAngle = getPigeon2().getYaw().getValueAsDouble();
         }
         getPigeon2().setYaw(cameraAngle);
@@ -422,14 +456,31 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     }
 
     public Command alignCommand(Supplier<Pose2d> targetPose) {
+        posePublisher.accept(targetPose.get());
         alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
         alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
         xController.setTolerance(.015, .1);
         yController.setTolerance(.015, .1);
         return applyRequest(() ->  { 
           Pose2d currentPose = getState().Pose;
-          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -2.5, 2.5);
-          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), -2.5, 2.5);
+          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -.5, .5);
+          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), .5, .5);
+
+          return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+        }).until(() -> xController.atSetpoint() && yController.atSetpoint() && alignAngleRequest.HeadingController.atSetpoint());
+        //.andThen(this.runOnce(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+    }
+
+    public Command profiledAlignCommand(Supplier<Pose2d> targetPose) {
+        alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
+        alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
+        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .1);
+        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .1);
+        return applyRequest(() ->  {
+          posePublisher.accept(targetPose.get());
+          Pose2d currentPose = getState().Pose;
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getY());
+          double yVelocity = yController.calculate(currentPose.getX(), targetPose.get().getY());
 
           return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
         }).until(() -> xController.atSetpoint() && yController.atSetpoint() && alignAngleRequest.HeadingController.atSetpoint());

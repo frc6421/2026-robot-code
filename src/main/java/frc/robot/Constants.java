@@ -30,6 +30,11 @@ public final class Constants {
 
   public static class AlignConstants {
     public static double ALIGN_P = 4;
+    public static double MAX_VELOCITY = 2.5;
+    public static double MAX_ACCELERATION = 4.5;
+
+    public static double MAX_POSITION_ERROR_METERS = 0.015;
+    public static double MAX_DEGREES_ERROR = 0.5;
   }
 
   public static class AutoConstants {

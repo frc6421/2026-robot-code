@@ -177,7 +177,7 @@ public class RobotContainer implements Subsystem{
   //shooting
   joystick.rightTrigger().whileTrue(new SequentialCommandGroup(
     shootingRevUp,
-    new InstantCommand(() -> shooterSubsystem.extendActuator(getHoodSelected())),
+    new InstantCommand(() -> shooterSubsystem.extendActuator(Constants.ShooterConstants.ACTUATOR_SHOOTING)),
     transitionSubsystem.shooterTransition(
       Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
       Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
@@ -185,9 +185,18 @@ public class RobotContainer implements Subsystem{
     new InstantCommand(() -> transitionSubsystem.stopTransition()),
     new InstantCommand(() -> shooterSubsystem.stopShooter())));
 
-  joystick.leftBumper().whileTrue(drivetrain.alignCommand( () -> (DriverStation.getAlliance().get() == Alliance.Blue) ? 
-  TrajectoryConstants.RED_ALLIANCE :
-  TrajectoryConstants.BLUE_ALLIANCE));
+  joystick.leftBumper().whileTrue(drivetrain.alignCommand( 
+      () -> DriverStation.getAlliance()
+      .map(alliance ->
+        alliance == Alliance.Blue
+        ? TrajectoryConstants.BLUE_ALLIANCE
+        : TrajectoryConstants.RED_ALLIANCE
+  )
+  .orElse(TrajectoryConstants.BLUE_ALLIANCE)
+  ));
+  // .get() == Alliance.Blue) ? 
+  // TrajectoryConstants.BLUE_ALLIANCE :
+  // TrajectoryConstants.RED_ALLIANCE));
 
 
   joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
