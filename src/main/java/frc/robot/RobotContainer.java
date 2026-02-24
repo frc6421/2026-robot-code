@@ -198,8 +198,6 @@ public class RobotContainer {
   // TrajectoryConstants.BLUE_ALLIANCE :
   // TrajectoryConstants.RED_ALLIANCE));
 
-
-  joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
   joystick.start().onTrue(drivetrain.resetGyro());
 
   //passing
@@ -224,10 +222,6 @@ public class RobotContainer {
 
   public double getHoodSelected() {
     return hoodChooser.getSelected();
-  }
-
-  public void autoVisionGyroReset() {
-    drivetrain.visionGyroReset();
   }
 
   public static void applyTalonConfigs(TalonFX motor, TalonFXConfiguration config) {
