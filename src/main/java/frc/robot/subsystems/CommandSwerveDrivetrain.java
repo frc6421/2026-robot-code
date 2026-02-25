@@ -96,10 +96,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(4.5, 8.5));
+     new Constraints(1.0, 8.5));
     private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(4.5, 8.5));
+     new Constraints(1.0, 8.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -476,8 +476,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yController.setTolerance(.015, .1);
         return applyRequest(() ->  { 
           Pose2d currentPose = getState().Pose;
-          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -1.5, 1.5);
-          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), 1.5, 1.5);
+          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -0.5, 0.5);
+          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), -0.5, 0.5);
 
           return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
         }).beforeStarting(() -> {
@@ -498,7 +498,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
           posePublisher.accept(targetPose.get());
           Pose2d currentPose = getState().Pose;
-
+          xControllerProfiled.setGoal(targetPose.get().getX());
+          yControllerProfiled.setGoal(targetPose.get().getY());
           double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getX());
           double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose.get().getY());
           

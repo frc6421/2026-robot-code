@@ -73,6 +73,9 @@ public final class Constants {
     public static final Pose2d BLUE_BUMP_D = new Pose2d (new Translation2d(Inches.of(181.56), Inches.of(218.58)), new Rotation2d(Degrees.of(315)));
     public static final Pose2d RED_BUMP_O = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(218.58)), new Rotation2d(Degrees.of(45)));
     public static final Pose2d RED_BUMP_D = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(315)));
+  
+    public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
+
   }
 
   public static class ClimbPositions {
