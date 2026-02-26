@@ -23,7 +23,8 @@ public class ClimbAutoCommand extends SequentialCommandGroup {
   public ClimbAutoCommand(ClimbSubsystem climb, CommandSwerveDrivetrain drive,
   ShooterSubsystem shooter, TransitionSubsystem transition) {
     addCommands(
-      drive.alignCommand(() -> TrajectoryConstants.RED_CLIMB_DEPOT)
+      drive.profiledAlignCommand(() -> TrajectoryConstants.RED_CLIMB_DEPOT),
+      drive.profiledAlignCommand(() -> TrajectoryConstants.RED_CLIMB_DEPOT_OFFSET)
     );
   }
 }

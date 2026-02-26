@@ -45,6 +45,8 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.WarriorCamera;
 import frc.robot.Constants.AlignConstants;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -67,7 +69,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private StructPublisher<Pose2d> posePublisher;
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
-    private Optional<Pose2d> targetPose = Optional.empty();
+    private Pose2d targetPose2d = new Pose2d();
     private Pose2d currentPose = new Pose2d();
     private double xVelocity = 0.0;
 
@@ -298,12 +300,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         updatePose(backRightCamera);
         updatePose(backLeftLeftCamera);
         updatePose(backLeftBackCamera);
-
-        if (!targetPose.equals(Optional.empty())) {
-        SmartDashboard.putNumber("X_Target", targetPose.get().getX());
-        }
-        SmartDashboard.putNumber("X_Current", currentPose.getX());
-        SmartDashboard.putNumber("X_Output_Vel", xVelocity);
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -451,6 +447,18 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
         }
 
+        else if (!backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
+            cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
+        }
+
+        else if (backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
+            cameraAngle = (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
+        }
+
+        else if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()) {
+            cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backLeftLeftCamera.getPose2d().getRotation().getDegrees()) / 2.0;
+        }
+
         if (!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()) {
             cameraAngle = getPigeon2().getYaw().getValueAsDouble();
         }
@@ -496,15 +504,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
         return applyRequest(() ->  {
 
-          posePublisher.accept(targetPose.get());
+          posePublisher.accept(targetPose2d);
           Pose2d currentPose = getState().Pose;
-          xControllerProfiled.setGoal(targetPose.get().getX());
-          yControllerProfiled.setGoal(targetPose.get().getY());
-          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getX());
-          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose.get().getY());
+          xControllerProfiled.setGoal(targetPose2d.getX());
+          yControllerProfiled.setGoal(targetPose2d.getY());
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose2d.getX());
+          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose2d.getY());
           
-          return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+          return alignAngleRequest.withTargetDirection(targetPose2d.getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
         }).beforeStarting(() -> {
+            targetPose2d = targetPose.get();
             Pose2d currentPose = getState().Pose;
             xControllerProfiled.reset(currentPose.getX(), getState().Speeds.vxMetersPerSecond);  
             yControllerProfiled.reset(currentPose.getY(), getState().Speeds.vyMetersPerSecond);  
@@ -512,8 +521,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         ).until(() -> 
         xControllerProfiled.atGoal() && 
         yControllerProfiled.atGoal() && 
-        alignAngleRequest.HeadingController.atSetpoint())
-        .andThen(applyRequest(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+        alignAngleRequest.HeadingController.atSetpoint());
         
     }
 }

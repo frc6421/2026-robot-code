@@ -53,7 +53,7 @@ public final class Constants {
     public static final double Y_DRIVE_I = 0;
     public static final double Y_DRIVE_D = 0.1;
 
-    public static final double THETA_P = 10.0;
+    public static final double THETA_P = 5.0;
     public static final double THETA_I = 0;
     public static final double THETA_D = 0;
   }
@@ -75,6 +75,7 @@ public final class Constants {
     public static final Pose2d RED_BUMP_D = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(315)));
   
     public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(555.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
 
   }
 
