@@ -10,6 +10,7 @@ import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
 import frc.robot.command.autoCommands.AutoNoneCommand;
 import frc.robot.command.autoCommands.BluePreloadCommand;
+import frc.robot.command.autoCommands.ClimbAutoCommand;
 import frc.robot.command.autoCommands.RedPreloadCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -73,6 +74,8 @@ public class RobotContainer {
   private final BluePreloadCommand bluePreloadCommand = new BluePreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final RedPreloadCommand redPreloadCommand = new RedPreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final AutoNoneCommand autoNoneCommand = new AutoNoneCommand();
+  private final ClimbAutoCommand climbAutoCommand = new ClimbAutoCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
@@ -94,6 +97,7 @@ public class RobotContainer {
     autoChooser.setDefaultOption("No Auto", autoNoneCommand);
     autoChooser.addOption("Red Preload", redPreloadCommand);
     autoChooser.addOption("Blue Preload", bluePreloadCommand);
+    autoChooser.addOption("Climb Auto", climbAutoCommand);
 
     hoodChooser = new SendableChooser<>();
     hoodChooser.addOption("Pass", Constants.ShooterConstants.ACTUATOR_PASSING);
@@ -190,7 +194,7 @@ public class RobotContainer {
       .map(alliance ->
         alliance == Alliance.Blue
         ? TrajectoryConstants.BLUE_ALLIANCE
-        : TrajectoryConstants.RED_ALLIANCE
+        : TrajectoryConstants.RED_CLIMB_DEPOT
   )
   .orElse(TrajectoryConstants.BLUE_ALLIANCE)
   ));

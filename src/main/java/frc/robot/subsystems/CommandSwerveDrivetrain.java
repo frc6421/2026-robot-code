@@ -44,6 +44,8 @@ import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine;
 import frc.robot.Constants;
 import frc.robot.Constants.AlignConstants;
+import frc.robot.Constants.AutoConstants;
+import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.generated.TunerConstants.TunerSwerveDrivetrain;
 
 /**
@@ -67,7 +69,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private StructPublisher<Pose2d> posePublisher;
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
-    private Optional<Pose2d> targetPose = Optional.empty();
+    private Pose2d targetPose2d = new Pose2d();
     private Pose2d currentPose = new Pose2d();
     private double xVelocity = 0.0;
 
@@ -96,10 +98,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(4.5, 8.5));
+     new Constraints(1.0, 8.5));
     private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(4.5, 8.5));
+     new Constraints(1.0, 8.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -303,11 +305,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             estimate.timestamp(),
             estimate.stdDevs());
         }
-        if (!targetPose.equals(Optional.empty())) {
-        SmartDashboard.putNumber("X_Target", targetPose.get().getX());
-        }
-        SmartDashboard.putNumber("X_Current", currentPose.getX());
-        SmartDashboard.putNumber("X_Output_Vel", xVelocity);
         /*
          * Periodically try to apply the operator perspective.
          * If we haven't applied the operator perspective before, then we should apply it regardless of DS state.
@@ -427,8 +424,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yController.setTolerance(.015, .1);
         return applyRequest(() ->  { 
           Pose2d currentPose = getState().Pose;
-          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -1.5, 1.5);
-          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), 1.5, 1.5);
+          double xVelocity = MathUtil.clamp(xController.calculate(currentPose.getX(), targetPose.get().getX()), -0.5, 0.5);
+          double yVelocity = MathUtil.clamp(yController.calculate(currentPose.getY(), targetPose.get().getY()), -0.5, 0.5);
 
           return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
         }).beforeStarting(() -> {
@@ -447,14 +444,16 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
         return applyRequest(() ->  {
 
-          posePublisher.accept(targetPose.get());
+          posePublisher.accept(targetPose2d);
           Pose2d currentPose = getState().Pose;
-
-          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose.get().getX());
-          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose.get().getY());
+          xControllerProfiled.setGoal(targetPose2d.getX());
+          yControllerProfiled.setGoal(targetPose2d.getY());
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose2d.getX());
+          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose2d.getY());
           
-          return alignAngleRequest.withTargetDirection(targetPose.get().getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+          return alignAngleRequest.withTargetDirection(targetPose2d.getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
         }).beforeStarting(() -> {
+            targetPose2d = targetPose.get();
             Pose2d currentPose = getState().Pose;
             xControllerProfiled.reset(currentPose.getX(), getState().Speeds.vxMetersPerSecond);  
             yControllerProfiled.reset(currentPose.getY(), getState().Speeds.vyMetersPerSecond);  
@@ -462,8 +461,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         ).until(() -> 
         xControllerProfiled.atGoal() && 
         yControllerProfiled.atGoal() && 
-        alignAngleRequest.HeadingController.atSetpoint())
-        .andThen(applyRequest(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
+        alignAngleRequest.HeadingController.atSetpoint());
         
     }
 }
