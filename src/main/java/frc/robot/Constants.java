@@ -110,22 +110,15 @@ public final class Constants {
 
   public static class VisionConstants {
 
-     public static final Transform3d LEFT_CAM_TRANSFORM = new Transform3d(
-        new Translation3d(-Units.inchesToMeters(11.868), -Units.inchesToMeters(10.2795), Units.inchesToMeters(6.543)),
-        new Rotation3d(0, 0, -Math.PI)
-    );
-
-    // Back Camera
-    public static final Transform3d BACK_CAM_TRANSFORM = new Transform3d(
-        new Translation3d(Units.inchesToMeters(13.486), Units.inchesToMeters(9.374), Units.inchesToMeters(6.543)),
-        new Rotation3d(0, 0, Math.PI)
-    );
-
-    // Right Camera
-    public static final Transform3d RIGHT_CAM_TRANSFORM = new Transform3d(
-        new Translation3d(-Units.inchesToMeters(9.6175), -Units.inchesToMeters(10.5465), Units.inchesToMeters(6.443)),
-        new Rotation3d(0, 0, Math.PI)
-    );
+      public final static Transform3d BACK_CAM_TRANSFORM = new Transform3d(new Translation3d(-.3425, .267, .19), // 1
+        new Rotation3d(Units.degreesToRadians(0.5), Units.degreesToRadians(-24.5),
+            Units.degreesToRadians(180)));
+    public final static Transform3d LEFT_CAM_TRANSFORM = new Transform3d(new Translation3d(-.244, .2678, 0.022), // 2
+        new Rotation3d(Units.degreesToRadians(-0.6), Units.degreesToRadians(-25.2),
+            Units.degreesToRadians(91.0)));
+    public final static Transform3d RIGHT_CAM_TRANSFORM = new Transform3d(new Translation3d(-.301, -.261, 0.15), // 3
+        new Rotation3d(Units.degreesToRadians(0.5), Units.degreesToRadians(-22.8),
+            Units.degreesToRadians(273)));
 
     public static final AprilTagFieldLayout FIELD_LAYOUT = AprilTagFieldLayout
         .loadField(AprilTagFields.k2026RebuiltAndymark);

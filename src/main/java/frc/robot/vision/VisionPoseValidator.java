@@ -26,8 +26,8 @@ public class VisionPoseValidator {
         double distance
     ) {
         if (ambiguity > AMBIGUITY_LIMIT) return PoseInvalidCause.HIGH_AMBIGUITY;
-        if (ambiguity > DISTANCE_LIMIT) return PoseInvalidCause.TOO_FAR;
-        if (ambiguity < CONFIDENCE_LIMIT ) return PoseInvalidCause.LOW_CONFIDENCE;
+        if (distance > DISTANCE_LIMIT) return PoseInvalidCause.TOO_FAR;
+        if (confidence < CONFIDENCE_LIMIT ) return PoseInvalidCause.LOW_CONFIDENCE;
 
         if ((pose.getX() > X_MAX) || (pose.getX() < 0.0) ||
         (pose.getY() > Y_MAX) || (pose.getY() < 0.0)) return PoseInvalidCause.OUT_OF_FIELD;
