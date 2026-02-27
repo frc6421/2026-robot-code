@@ -67,6 +67,8 @@ public class ShooterSubsystem extends SubsystemBase {
     private static final int SHOOTER_STEER_CAN_ID = 50;
 
     private static final double SHOOTER_GEAR_RATIO = 0.0;
+    private static final double SHOOTER_HOOD_MAXIMUM_ANGLE = 65.0; //This is when the hood is down as far as possible
+    private static final double SHOOTER_HOOD_MAX_CHANGE_ANGLE = 25.0; //How much the hood can actuate from bottom to top in degrees
 
     private static final double SHOOTER_ROTATIONS_PER_DEGREE = 0.1;
     private static final double MAX_RPM_ERROR = 50.0;
@@ -190,7 +192,7 @@ public class ShooterSubsystem extends SubsystemBase {
     return (Math.abs(getRPM() - setRPM) <= ShooterConstants.MAX_RPM_ERROR);
   }
 
-  private void turnShooter(double angle) {
+  public void turnShooter(double angle) {
     setAngle = () -> angle;
     shooterRequestTurn.withPosition(angle * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE);
 
@@ -202,9 +204,33 @@ public class ShooterSubsystem extends SubsystemBase {
     rightActuator.set(length);
   }
 
+  public void setHoodAngle(double angle) {
+    double setAngle = angle;
+    if ((angle > ShooterConstants.SHOOTER_HOOD_MAXIMUM_ANGLE)) {
+      setAngle = ShooterConstants.SHOOTER_HOOD_MAXIMUM_ANGLE;
+    }
+    else if (angle < (ShooterConstants.SHOOTER_HOOD_MAXIMUM_ANGLE - ShooterConstants.SHOOTER_HOOD_MAX_CHANGE_ANGLE)) {
+      setAngle = ShooterConstants.SHOOTER_HOOD_MAXIMUM_ANGLE - ShooterConstants.SHOOTER_HOOD_MAX_CHANGE_ANGLE;
+    }
+    leftActuator.set(Math.abs(getHoodAngle() - setAngle) / ShooterConstants.SHOOTER_HOOD_MAX_CHANGE_ANGLE);
+    rightActuator.set(Math.abs(getHoodAngle() - setAngle) / ShooterConstants.SHOOTER_HOOD_MAX_CHANGE_ANGLE);
+  }
+
+  public double getActuatorLength() {
+    return leftActuator.get();
+  }
+
+  /**
+   * Uses the LinearActuators to find the angle of the hood
+   * @return hood angle (degrees)
+   */
+  public double getHoodAngle() {
+    return ShooterConstants.SHOOTER_HOOD_MAXIMUM_ANGLE - (getActuatorLength() * ShooterConstants.SHOOTER_HOOD_MAX_CHANGE_ANGLE);
+  }
   public void setOutput(double output) {
     shooterMotorLeft.set(output);
   }
+
 
   public void stopShooter(){
     shooterMotorLeft.stopMotor();

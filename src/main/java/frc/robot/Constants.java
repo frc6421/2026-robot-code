@@ -77,6 +77,9 @@ public final class Constants {
     public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(555.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
 
+    public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(605.12), Inches.of(100)); // TODO find value
+    public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(555.12), Inches.of(100));// TODO find value
+
   }
 
   public static class ClimbPositions {
@@ -99,5 +102,13 @@ public final class Constants {
     public static final double SHOOTER_RPM = 3500;
     public static final double ACTUATOR_PASSING = 0.38;
     public static final double ACTUATOR_SHOOTING = 0.02;
+
+    //SOTM
+    public static final double LATENCY_SEC = 0.15;
+    public static final double WHEEL_DIAMETER = 0.1016; // METERS
+    public static final double HOOD_ANGLE_SHOOT = 69.5; // DEGREES
+    public static final double HOOD_ANGLE_PASS_NEU_CLOSE = 69.5; // DEGREES
+    public static final double HOOD_ANGLE_PASS_NEU_FAR = 69.5; // DEGREES
+    public static final double HOOD_ANGLE_PASS_OPP_ALL = 55.0; // DEGREES
   }
 }
