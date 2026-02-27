@@ -27,7 +27,7 @@ public class PassOnTheMove {
         );
 
         //get Target Vecotr
-        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_HUB_GOAL : TrajectoryConstants.RED_HUB_GOAL;
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_O.getTranslation() : TrajectoryConstants.RED_BUMP_O.getTranslation();
         Translation2d targetVector = goalLocation.minus(futurePos);
         double distance = targetVector.getNorm();
 
