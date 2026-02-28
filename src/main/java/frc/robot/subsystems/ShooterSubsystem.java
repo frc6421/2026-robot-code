@@ -11,6 +11,7 @@
 package frc.robot.subsystems;
 
 import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
@@ -25,6 +26,8 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
@@ -33,7 +36,9 @@ import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.ShootOnTheMove;
 import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
@@ -54,7 +59,7 @@ public class ShooterSubsystem extends SubsystemBase {
   private VelocityVoltage shooterRequest;
   private PositionVoltage shooterRequestTurn;
 
-  private DoubleSupplier setAngle = () -> 0.0;
+  private ShootOnTheMove shootOnTheMove = new ShootOnTheMove();
 
   private TalonFXSimState shooterTurnSim;
 
@@ -243,7 +248,9 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorLeft.set(output);
   }
 
-
+  public void shootOnTheMove(Supplier<Pose2d> pose, Supplier<ChassisSpeeds> speeds) {
+    shootOnTheMove.update(pose, speeds, this);
+  }
   public void stopShooter(){
     shooterMotorLeft.stopMotor();
   }
@@ -269,7 +276,7 @@ public class ShooterSubsystem extends SubsystemBase {
     builder.addDoubleProperty("ShooterTurn Velocity", () -> shooterMotorTurn.getVelocity().getValueAsDouble(), null);
     builder.addDoubleProperty("ShooterTurn Rotations", () -> shooterMotorTurn.getPosition().getValueAsDouble(), null);
     builder.addDoubleProperty("ShooterTurn Angle", () -> (shooterMotorTurn.getPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE), null);
-    builder.addDoubleProperty("ShooterTurn SetAngle", setAngle, null);
+    builder.addDoubleProperty("ShooterTurn SetAngle", shootOnTheMove.getSetAngle(), null);
 
     builder.addDoubleProperty("Actuator Length", () -> leftActuator.getPosition(), null);
   }

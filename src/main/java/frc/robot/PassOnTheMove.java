@@ -47,8 +47,8 @@ public class PassOnTheMove {
         double ratio = Math.min(newHorizontalSpeed / totalVelocity, 1.0);
         double newHoodAngle = Math.acos(ratio);
 
-        shooter.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
+        //shooter.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
         shooter.turnShooter(turretAngle);
-        shooter.setHoodAngle(newHoodAngle);
+        //shooter.setHoodAngle(newHoodAngle);
     }
 }

@@ -43,6 +43,7 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelCommandGroup;
+import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.Subsystem;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
@@ -56,7 +57,7 @@ import edu.wpi.first.wpilibj2.command.sysid.SysIdRoutine.Direction;
  * periodic methods (other than the scheduler calls). Instead, the structure of the robot (including
  * subsystems, commands, and trigger mappings) should be declared here.
  */
-public class RobotContainer implements Subsystem{
+public class RobotContainer{
   private double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond);
   private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond);
   // The robot's subsystems and commands are defined here...
@@ -157,13 +158,12 @@ public class RobotContainer implements Subsystem{
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    joystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(15.0)));
-    joystick.y().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(0.0)));
+    shooterSubsystem.setDefaultCommand(new RunCommand(() -> shooterSubsystem.shootOnTheMove(() -> drivetrain.getState().Pose, () -> drivetrain.getState().Speeds)));
+    // joystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(15.0)));
+    // joystick.y().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(0.0)));
 
-    joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.85)));
-    joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.10)));
-
-    
+    // joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.85)));
+    // joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.10)));
 
     // joystick.a().whileTrue(intakeSubsystem.setIntakePivotSpeed(0.25));
     // joystick.a().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
@@ -244,10 +244,10 @@ public class RobotContainer implements Subsystem{
     drivetrain.visionGyroReset();
   }
 
-  @Override
-  public void simulationPeriodic() {
-    drivetrain.getVisionSim().update(drivetrain.getState().Pose);
-  }
+  // @Override
+  // public void simulationPeriodic() {
+  //   drivetrain.getVisionSim().update(drivetrain.getState().Pose);
+  // }
 
   public static void applyTalonConfigs(TalonFX motor, TalonFXConfiguration config) {
 		StatusCode status = StatusCode.StatusCodeNotInitialized;
