@@ -14,6 +14,7 @@ import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
+import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
@@ -68,7 +69,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     private static final double SHOOTER_GEAR_RATIO = 0.0;
 
-    private static final double SHOOTER_ROTATIONS_PER_DEGREE = 0.1;
+    private static final double SHOOTER_ROTATIONS_PER_DEGREE = 0.13568;
     private static final double MAX_RPM_ERROR = 50.0;
 
     private static final MotorOutputConfigs SHOOTER_MOTOR_CONFIG = new MotorOutputConfigs()
@@ -77,6 +78,12 @@ public class ShooterSubsystem extends SubsystemBase {
     private static final MotorOutputConfigs SHOOTER_MOTOR_TURN_CONFIG = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Brake)
     .withInverted(InvertedValue.Clockwise_Positive);
+
+    private static final SoftwareLimitSwitchConfigs SHOOTER_TURN_SOFT_LIMITS = new SoftwareLimitSwitchConfigs()
+    .withForwardSoftLimitEnable(true)
+    .withReverseSoftLimitEnable(true)
+    .withForwardSoftLimitThreshold(14.7)
+    .withReverseSoftLimitThreshold(-15.0);
 
     private static final class SHOOTER_PID_VALUES {
     private static final double kP = 0.1;
@@ -91,9 +98,9 @@ public class ShooterSubsystem extends SubsystemBase {
     }
 
     private static final class SHOOTER_TURN_PID_VALUES {
-    private static final double kP = 0.1;
+    private static final double kP = 2.015;
 
-    private static final double kS = 0.1;
+    private static final double kS = 0.3935;
 
     private static final double kV = 0.1;
 
@@ -118,24 +125,6 @@ public class ShooterSubsystem extends SubsystemBase {
     leftActuator.setBoundsMicroseconds(2000, 1501, 1500, 1499, 1000);
     rightActuator.setBoundsMicroseconds(2000, 1501, 1500, 1499, 1000);
 
-    shooterMotorConfig = new TalonFXConfiguration()
-    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG);
-
-    shooterMotorTurnConfig = new TalonFXConfiguration()
-    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_TURN_CONFIG);
-
-    shooterRequest = new VelocityVoltage(0).withEnableFOC(true);
-
-    shooterRequestTurn = new PositionVoltage(0).withEnableFOC(true);
-    
-    shooterMotorLeft.getConfigurator().apply(new TalonFXConfiguration());
-    shooterMotorRight.getConfigurator().apply(new TalonFXConfiguration());
-    shooterMotorTurn.getConfigurator().apply(new TalonFXConfiguration());
-
-    shooterMotorLeft.getConfigurator().apply(shooterMotorConfig);
-    shooterMotorRight.getConfigurator().apply(shooterMotorConfig);
-    shooterMotorTurn.getConfigurator().apply(shooterMotorTurnConfig);
-
     PIDConfigShooter = new Slot0Configs();
 
     PIDConfigShooter.kS = ShooterConstants.SHOOTER_PID_VALUES.kS;
@@ -151,6 +140,28 @@ public class ShooterSubsystem extends SubsystemBase {
     PIDConfigTurn.kV = ShooterConstants.SHOOTER_TURN_PID_VALUES.kV;
     PIDConfigTurn.kI = ShooterConstants.SHOOTER_TURN_PID_VALUES.kI;
     PIDConfigTurn.kD = ShooterConstants.SHOOTER_TURN_PID_VALUES.kD;
+
+    shooterMotorConfig = new TalonFXConfiguration()
+    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG);
+
+    shooterMotorTurnConfig = new TalonFXConfiguration()
+    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_TURN_CONFIG)
+    .withSoftwareLimitSwitch(ShooterConstants.SHOOTER_TURN_SOFT_LIMITS)
+    .withSlot0(PIDConfigTurn);
+
+    shooterRequest = new VelocityVoltage(0).withEnableFOC(true);
+
+    shooterRequestTurn = new PositionVoltage(0)
+    .withEnableFOC(true)
+    .withSlot(0);
+    
+    shooterMotorLeft.getConfigurator().apply(new TalonFXConfiguration());
+    shooterMotorRight.getConfigurator().apply(new TalonFXConfiguration());
+    shooterMotorTurn.getConfigurator().apply(new TalonFXConfiguration());
+
+    shooterMotorLeft.getConfigurator().apply(shooterMotorConfig);
+    shooterMotorRight.getConfigurator().apply(shooterMotorConfig);
+    shooterMotorTurn.getConfigurator().apply(shooterMotorTurnConfig);
 
     shooterMotorLeft.getConfigurator().apply(PIDConfigShooter);
     shooterMotorRight.getConfigurator().apply(PIDConfigShooter);
@@ -190,11 +201,12 @@ public class ShooterSubsystem extends SubsystemBase {
     return (Math.abs(getRPM() - setRPM) <= ShooterConstants.MAX_RPM_ERROR);
   }
 
-  private void turnShooter(double angle) {
-    setAngle = () -> angle;
-    shooterRequestTurn.withPosition(angle * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE);
+  public void turnShooter(double angle) {
+      shooterMotorTurn.setControl(shooterRequestTurn.withPosition(angle * ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE));
+  }
 
-    shooterMotorTurn.setControl(shooterRequestTurn);
+  public void setShooterTurnVoltage(double voltage) {
+    shooterMotorTurn.setVoltage(voltage);
   }
 
   public void extendActuator(double length) {
@@ -208,6 +220,10 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public void stopShooter(){
     shooterMotorLeft.stopMotor();
+  }
+
+  public void stopShooterTurn() {
+    shooterMotorTurn.stopMotor();
   }
 
   @Override
@@ -226,7 +242,7 @@ public class ShooterSubsystem extends SubsystemBase {
     builder.addDoubleProperty("ShooterTurn Voltage", () -> shooterMotorTurn.getMotorVoltage().getValueAsDouble(), null);
     builder.addDoubleProperty("ShooterTurn Velocity", () -> shooterMotorTurn.getVelocity().getValueAsDouble(), null);
     builder.addDoubleProperty("ShooterTurn Rotations", () -> shooterMotorTurn.getPosition().getValueAsDouble(), null);
-    builder.addDoubleProperty("ShooterTurn Angle", () -> shooterMotorTurn.getPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE, null);
+    builder.addDoubleProperty("ShooterTurn Angle", () -> (shooterMotorTurn.getPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE), null);
     builder.addDoubleProperty("ShooterTurn SetAngle", setAngle, null);
 
     builder.addDoubleProperty("Actuator Length", () -> leftActuator.getPosition(), null);

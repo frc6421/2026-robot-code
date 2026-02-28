@@ -13,9 +13,11 @@ import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.PositionVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
@@ -35,7 +37,8 @@ import frc.robot.subsystems.ShooterSubsystem.ShooterConstants;
 public class IntakeSubsystem extends SubsystemBase {
 
   private TalonFX intakeMotor;
-  private TalonFX intakePivot;
+  private TalonFX intakePivotRight;
+  private TalonFX intakePivotLeft;
   private TalonFXConfiguration intakeMotorConfig;
   private TalonFXConfiguration intakePivotConfig;
   private PositionVoltage intakeRequestTurn;
@@ -44,8 +47,9 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public static class IntakeConstants{
     //.6557rot 90 deg
-    private static final int INTAKE_MOTONER_ID = 60; 
-    private static final int INTAKE_PIVOT_ID = 61;
+    private static final int INTAKE_MOTOR_ID = 60; 
+    private static final int INTAKE_PIVOT_RIGHT_ID = 62; 
+    private static final int INTAKE_PIVOT_LEFT_ID = 61;
    
     private static final MotorOutputConfigs INTAKE_MOTOR_CONFIGS = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Coast)
@@ -53,10 +57,10 @@ public class IntakeSubsystem extends SubsystemBase {
 
     private static final MotorOutputConfigs INTAKE_PIVOT_CONFIGS = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Brake)
-    .withInverted(InvertedValue.Clockwise_Positive);
+    .withInverted(InvertedValue.CounterClockwise_Positive);
 
-    private static final double FORWARD_SOFT_LIMIT = 0.655;
-    private static final double REVERSE_SOFT_LIMIT = 0.0;
+    private static final double FORWARD_SOFT_LIMIT = 5.760;
+    private static final double REVERSE_SOFT_LIMIT = 0.15;
 
     private static final SoftwareLimitSwitchConfigs INTAKE_PIVOT_SOFTWARE_CONFIGS = new SoftwareLimitSwitchConfigs()
   .withForwardSoftLimitEnable(true)
@@ -94,11 +98,13 @@ public class IntakeSubsystem extends SubsystemBase {
 
   /** Creates a new IntakeSubsystem. */
   public IntakeSubsystem() {
-  intakeMotor = new TalonFX(IntakeConstants.INTAKE_MOTONER_ID);
-  intakePivot = new TalonFX(IntakeConstants.INTAKE_PIVOT_ID);
+  intakeMotor = new TalonFX(IntakeConstants.INTAKE_MOTOR_ID);
+  intakePivotRight = new TalonFX(IntakeConstants.INTAKE_PIVOT_RIGHT_ID);
+  intakePivotLeft = new TalonFX(IntakeConstants.INTAKE_PIVOT_LEFT_ID);
   
   RobotContainer.applyTalonConfigs(intakeMotor, new TalonFXConfiguration());
-  RobotContainer.applyTalonConfigs(intakePivot, new TalonFXConfiguration());
+  RobotContainer.applyTalonConfigs(intakePivotRight, new TalonFXConfiguration());
+  RobotContainer.applyTalonConfigs(intakePivotLeft, new TalonFXConfiguration());
 
   PIDConfigIntake = new Slot0Configs();
   PIDConfigIntake.kS = IntakeConstants.kS;
@@ -116,14 +122,19 @@ public class IntakeSubsystem extends SubsystemBase {
   .withSlot0(PIDConfigIntake);
 
   RobotContainer.applyTalonConfigs(intakeMotor, intakeMotorConfig);
-  RobotContainer.applyTalonConfigs(intakePivot, intakePivotConfig);
+  RobotContainer.applyTalonConfigs(intakePivotRight, intakePivotConfig);
+  RobotContainer.applyTalonConfigs(intakePivotLeft, intakePivotConfig);
 
-  intakePivot.getConfigurator().apply(PIDConfigIntake);
-  intakePivot.setPosition(0);
+  intakePivotLeft.getConfigurator().apply(PIDConfigIntake);
+  intakePivotRight.getConfigurator().apply(PIDConfigIntake);
+  intakePivotLeft.setPosition(0);
+  intakePivotRight.setPosition(0);
 
   intakeRequestTurn = new PositionVoltage(0).withEnableFOC(true);
 
-  pivotSim = intakePivot.getSimState();
+  intakePivotRight.setControl(new Follower(IntakeConstants.INTAKE_PIVOT_LEFT_ID, MotorAlignmentValue.Opposed));
+
+  pivotSim = intakePivotLeft.getSimState();
   intakeSim = intakeMotor.getSimState();
   
   SmartDashboard.putData("Intake Mech2d", intakeMech);
@@ -132,7 +143,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public void turnIntake(double angle) {
     intakeRequestTurn.withPosition(angle * IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE);
-    intakePivot.setControl(intakeRequestTurn);
+    intakePivotLeft.setControl(intakeRequestTurn);
   }
 
   public Command setIntakeSpeed(double output){
@@ -140,7 +151,7 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public Command setIntakePivotSpeed(double output){
-    return runOnce(() -> intakePivot.set(output));
+    return runOnce(() -> intakePivotLeft.set(output));
   }
 
   public void stopIntake(){
@@ -148,7 +159,7 @@ public class IntakeSubsystem extends SubsystemBase {
   }
 
   public void stopIntakePivot(){
-    intakePivot.stopMotor();
+    intakePivotLeft.stopMotor();
   }
 
   @Override
@@ -171,12 +182,12 @@ public class IntakeSubsystem extends SubsystemBase {
   public void initSendable(SendableBuilder builder) {
       super.initSendable(builder);
 
-    builder.addDoubleProperty("Pivot voltage", () -> intakePivot.getMotorVoltage().getValueAsDouble(), null);
-    builder.addDoubleProperty("Pivot velocity", () -> intakePivot.getVelocity().getValueAsDouble(), null);
-    builder.addDoubleProperty("Pivot angle", () -> intakePivot.getPosition().getValueAsDouble() / IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE, null);
-    builder.addDoubleProperty("Pivot position", () -> intakePivot.getPosition().getValueAsDouble(), null);
-    builder.addDoubleProperty("Pivot current", () -> intakePivot.getSupplyCurrent().getValueAsDouble(), null);
-    builder.addDoubleProperty("Pivot stator current", () -> intakePivot.getStatorCurrent().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot voltage", () -> intakePivotLeft.getMotorVoltage().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot velocity", () -> intakePivotLeft.getVelocity().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot angle", () -> intakePivotLeft.getPosition().getValueAsDouble() / IntakeConstants.INTAKE_ROTATIONS_PER_DEGREE, null);
+    builder.addDoubleProperty("Pivot position", () -> intakePivotLeft.getPosition().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot current", () -> intakePivotLeft.getSupplyCurrent().getValueAsDouble(), null);
+    builder.addDoubleProperty("Pivot stator current", () -> intakePivotLeft.getStatorCurrent().getValueAsDouble(), null);
 
     builder.addDoubleProperty("Intake RPM", () -> intakeMotor.getVelocity().getValueAsDouble() * 60, null);
   }

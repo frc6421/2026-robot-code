@@ -88,6 +88,7 @@ public final class Constants {
     public static final double INTAKE_RETRACTED_DEGREES = 0;
     public static final double INTAKE_EXTENDED_DEGREES = 90;
     public static final double INTAKE_SPEED = 0.72;
+    public static final double INTAKE_PIVOT_SPEED = 0.25;
   }
 
   public static class TransitionConstants {
