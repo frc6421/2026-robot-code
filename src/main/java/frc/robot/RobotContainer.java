@@ -157,60 +157,70 @@ public class RobotContainer implements Subsystem{
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    // joystick.x().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(Constants.IntakePositions.INTAKE_EXTENDED_DEGREES)));
-    // joystick.b().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(Constants.IntakePositions.INTAKE_RETRACTED_DEGREES)));
+    joystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(15.0)));
+    joystick.y().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(0.0)));
+
+    joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.85)));
+    joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.10)));
+
     
+
+    // joystick.a().whileTrue(intakeSubsystem.setIntakePivotSpeed(0.25));
+    // joystick.a().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
+
+    // joystick.b().whileTrue(intakeSubsystem.setIntakePivotSpeed(-0.25));
+    // joystick.b().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
     //intake
-    joystick.x().onTrue(new SequentialCommandGroup(
-      intakeSubsystem.setIntakeSpeed(.72),
-      intakeSubsystem.setIntakePivotSpeed(.5),
-      transitionSubsystem.intakeTransition(Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
-    joystick.b().onTrue(new SequentialCommandGroup(
-      new InstantCommand(() -> intakeSubsystem.stopIntakePivot()),
-      new InstantCommand(() -> intakeSubsystem.stopIntake()),
-      new InstantCommand(() -> transitionSubsystem.stopTransition())
-    ));
+  //   joystick.x().onTrue(new SequentialCommandGroup(
+  //     intakeSubsystem.setIntakeSpeed(.72),
+  //     intakeSubsystem.setIntakePivotSpeed(.5),
+  //     transitionSubsystem.intakeTransition(Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
+  //   joystick.b().onTrue(new SequentialCommandGroup(
+  //     new InstantCommand(() -> intakeSubsystem.stopIntakePivot()),
+  //     new InstantCommand(() -> intakeSubsystem.stopIntake()),
+  //     new InstantCommand(() -> transitionSubsystem.stopTransition())
+  //   ));
 
-    //barf
-    joystick.rightBumper().whileTrue(
-      transitionSubsystem.shooterTransition(
-        Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
-        Constants.TransitionConstants.TRANSITION_HOPPER_SPEED));
-    joystick.rightBumper().onFalse(new InstantCommand(() -> transitionSubsystem.stopTransition()));
+  //   //barf
+  //   joystick.rightBumper().whileTrue(
+  //     transitionSubsystem.shooterTransition(
+  //       Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
+  //       Constants.TransitionConstants.TRANSITION_HOPPER_SPEED));
+  //   joystick.rightBumper().onFalse(new InstantCommand(() -> transitionSubsystem.stopTransition()));
   
-  //shooting
-  joystick.rightTrigger().whileTrue(new SequentialCommandGroup(
-    shootingRevUp,
-    new InstantCommand(() -> shooterSubsystem.extendActuator(Constants.ShooterConstants.ACTUATOR_SHOOTING)),
-    transitionSubsystem.shooterTransition(
-      Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
-      Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
-  joystick.rightTrigger().onFalse(new ParallelCommandGroup(
-    new InstantCommand(() -> transitionSubsystem.stopTransition()),
-    new InstantCommand(() -> shooterSubsystem.stopShooter())));
+  // //shooting
+  // joystick.rightTrigger().whileTrue(new SequentialCommandGroup(
+  //   shootingRevUp,
+  //   new InstantCommand(() -> shooterSubsystem.extendActuator(Constants.ShooterConstants.ACTUATOR_SHOOTING)),
+  //   transitionSubsystem.shooterTransition(
+  //     Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
+  //     Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
+  // joystick.rightTrigger().onFalse(new ParallelCommandGroup(
+  //   new InstantCommand(() -> transitionSubsystem.stopTransition()),
+  //   new InstantCommand(() -> shooterSubsystem.stopShooter())));
 
-  joystick.leftBumper().whileTrue(drivetrain.profiledAlignCommand( 
-      () -> DriverStation.getAlliance()
-      .map(alliance ->
-        alliance == Alliance.Blue
-        ? TrajectoryConstants.BLUE_ALLIANCE
-        : TrajectoryConstants.RED_CLIMB_DEPOT
-  )
-  .orElse(TrajectoryConstants.BLUE_ALLIANCE)
-  ));
-  // .get() == Alliance.Blue) ? 
-  // TrajectoryConstants.BLUE_ALLIANCE :
-  // TrajectoryConstants.RED_ALLIANCE));
+  // joystick.leftBumper().whileTrue(drivetrain.profiledAlignCommand( 
+  //     () -> DriverStation.getAlliance()
+  //     .map(alliance ->
+  //       alliance == Alliance.Blue
+  //       ? TrajectoryConstants.BLUE_ALLIANCE
+  //       : TrajectoryConstants.RED_CLIMB_DEPOT
+  // )
+  // .orElse(TrajectoryConstants.BLUE_ALLIANCE)
+  // ));
+  // // .get() == Alliance.Blue) ? 
+  // // TrajectoryConstants.BLUE_ALLIANCE :
+  // // TrajectoryConstants.RED_ALLIANCE));
 
 
-  joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
-  joystick.start().onTrue(drivetrain.resetGyro());
+  // joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
+  // joystick.start().onTrue(drivetrain.resetGyro());
 
-  //passing
+  // //passing
 
-  //climb
-  joystick.y().onTrue(climbGoesUpCommand);
-  joystick.a().onTrue(climbGoesDownCommand);
+  // //climb
+  // joystick.y().onTrue(climbGoesUpCommand);
+  // joystick.a().onTrue(climbGoesDownCommand);
 
   // joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.38)));
   // joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.02)));

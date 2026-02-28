@@ -62,9 +62,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private double m_lastSimTime;
 
     //left and right assuming intake is the front, and you are looking at the intake from the back
-    public final WarriorCamera backRightCamera = new WarriorCamera("Camera_3_OV9281_USB_Camera", WarriorCamera.CameraConstants.BACK_RIGHT);
-    public final WarriorCamera backLeftLeftCamera = new WarriorCamera("Camera_2_OV9281_USB_Camera", WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
-    public final WarriorCamera backLeftBackCamera = new WarriorCamera("Camera_1_OV9281_USB_Camera", WarriorCamera.CameraConstants. BACK_LEFT_BACK_FACING);
+    public final WarriorCamera backRightCamera = new WarriorCamera("RightCam", WarriorCamera.CameraConstants.BACK_RIGHT);
+    public final WarriorCamera backLeftLeftCamera = new WarriorCamera("LeftCam", WarriorCamera.CameraConstants.BACK_LEFT_LEFT_FACING);
+    public final WarriorCamera backLeftBackCamera = new WarriorCamera("BackCam", WarriorCamera.CameraConstants. BACK_LEFT_BACK_FACING);
 
     private StructPublisher<Pose2d> posePublisher;
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
