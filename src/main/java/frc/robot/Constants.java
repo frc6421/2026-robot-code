@@ -105,7 +105,7 @@ public final class Constants {
     public static final double ACTUATOR_SHOOTING = 0.02;
 
     //SOTM
-    public static final double LATENCY_SEC = 0.15;
+    public static final double LATENCY_SEC = 0.10;
     public static final double WHEEL_DIAMETER = 0.1016; // METERS
     public static final double HOOD_ANGLE_SHOOT = 69.5; // DEGREES
     public static final double HOOD_ANGLE_PASS_NEU_CLOSE = 69.5; // DEGREES

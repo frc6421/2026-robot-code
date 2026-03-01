@@ -38,13 +38,15 @@ import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
+import edu.wpi.first.wpilibj.smartdashboard.Mechanism2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismLigament2d;
+import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.SOTMTable;
-import frc.robot.ShootOnTheMove;
 import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
 
@@ -70,11 +72,11 @@ public class ShooterSubsystem extends SubsystemBase {
   private double shotAngle = 0.0;
   private double horizSpeed = 0.0;
 
+  private Mechanism2d turretmech = new Mechanism2d(2, 2);
+  private MechanismRoot2d turretRoot = turretmech.getRoot("TurretRoot", 1, 1);
+  private MechanismLigament2d turretLigament = turretRoot.append(new MechanismLigament2d("TurretLigament", 0.5, 180));
   private TalonFXSimState shooterTurnSim;
-
   private SingleJointedArmSim shooterTurnPhysics;
-
-
 
   public static final class ShooterConstants{
     private static final int SHOOTER_LEFT_CAN_ID = 51;
@@ -186,6 +188,7 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorRight.setControl(new Follower(ShooterConstants.SHOOTER_LEFT_CAN_ID, MotorAlignmentValue.Opposed));
     shooterMotorTurn.setPosition(0);
     SmartDashboard.putData("Shooter", this);
+    SmartDashboard.putData("TurretMech", turretmech);
 
     shooterTurnSim = shooterMotorTurn.getSimState();
 
@@ -269,7 +272,7 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorTurn.stopMotor();
   }
 
-  public void update(Pose2d robotPose, ChassisSpeeds robotSpeed) {
+  public void updateSOTM(Pose2d robotPose, ChassisSpeeds robotSpeed) {
 
         //Latency
         double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
@@ -297,9 +300,86 @@ public class ShooterSubsystem extends SubsystemBase {
         this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
 
         setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        turretLigament.setAngle(setAngle + 180);
         shotAngle = shotVector.getAngle().getDegrees();
         horizSpeed = idealHorizontalSpeed;
         
+    }
+
+  public void updateHighPOTM(Pose2d robotPose, ChassisSpeeds robotSpeed) {
+
+        //Latency
+        double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        Translation2d futurePos = robotPose.getTranslation().plus(
+            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+        );
+
+        //get Target Vecotr
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_D.getTranslation() : TrajectoryConstants.RED_BUMP_O.getTranslation();
+        Translation2d targetVector = goalLocation.minus(futurePos);
+        double distance = targetVector.getNorm();
+
+        double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(this.getHoodAngle()));
+        double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(this.getHoodAngle()));
+
+        //minus vectors
+        Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+
+        //get the angles and stuff
+        double turretAngle = shotVector.getAngle().getDegrees();
+        double newHorizontalSpeed = shotVector.getNorm();
+
+        double totalVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed);
+
+        double ratio = Math.min(newHorizontalSpeed / totalVelocity, 1.0);
+        double newHoodAngle = Math.acos(ratio);
+
+        setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        turretLigament.setAngle(setAngle + 180);
+        horizSpeed = idealHorizontalSpeed;
+        
+        this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
+        this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
+        this.setHoodAngle(newHoodAngle);
+    }
+
+  public void updateLowPOTM(Pose2d robotPose, ChassisSpeeds robotSpeed) {
+
+        //Latency
+        double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        Translation2d futurePos = robotPose.getTranslation().plus(
+            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+        );
+
+        //get Target Vecotr
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_O.getTranslation() : TrajectoryConstants.RED_BUMP_D.getTranslation();
+        Translation2d targetVector = goalLocation.minus(futurePos);
+        double distance = targetVector.getNorm();
+
+        double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(this.getHoodAngle()));
+        double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(this.getHoodAngle()));
+
+        //minus vectors
+        Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+
+        //get the angles and stuff
+        double turretAngle = shotVector.getAngle().getDegrees();
+        double newHorizontalSpeed = shotVector.getNorm();
+
+        double totalVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed);
+
+        double ratio = Math.min(newHorizontalSpeed / totalVelocity, 1.0);
+        double newHoodAngle = Math.acos(ratio);
+
+        setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        turretLigament.setAngle(setAngle + 180);
+        horizSpeed = idealHorizontalSpeed;
+        
+        this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
+        this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
+        this.setHoodAngle(newHoodAngle);
     }
 
 

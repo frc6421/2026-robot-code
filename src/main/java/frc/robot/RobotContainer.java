@@ -9,6 +9,7 @@ import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.Constants.TransitionConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
+import frc.robot.command.ZoneCommand;
 import frc.robot.command.autoCommands.AutoNoneCommand;
 import frc.robot.command.autoCommands.BluePreloadCommand;
 import frc.robot.command.autoCommands.ClimbAutoCommand;
@@ -73,6 +74,7 @@ public class RobotContainer{
   private final ClimbCommand climbGoesUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
   private final ClimbCommand climbGoesDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
   private final ShooterRevUp shootingRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
+  private final ZoneCommand zoneCommand = new ZoneCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
   private final BluePreloadCommand bluePreloadCommand = new BluePreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final RedPreloadCommand redPreloadCommand = new RedPreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final AutoNoneCommand autoNoneCommand = new AutoNoneCommand();
@@ -159,7 +161,6 @@ public class RobotContainer{
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    shooterSubsystem.setDefaultCommand(new RunCommand(() -> shooterSubsystem.update(drivetrain.getState().Pose, drivetrain.getState().Speeds), shooterSubsystem));
     // transitionSubsystem.setDefaultCommand(transitionSubsystem.shooterTransition(
     //   TransitionConstants.TRANSITION_SHOOTER_SPEED, TransitionConstants.TRANSITION_HOPPER_SPEED));
     // intakeSubsystem.setDefaultCommand(intakeSubsystem.intakeOut());
@@ -219,6 +220,7 @@ public class RobotContainer{
 
   joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
   joystick.start().onTrue(drivetrain.resetGyro());
+  joystick.a().toggleOnTrue(zoneCommand);
 
   // //passing
 
