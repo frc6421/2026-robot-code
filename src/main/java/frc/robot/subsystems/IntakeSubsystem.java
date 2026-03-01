@@ -62,6 +62,9 @@ public class IntakeSubsystem extends SubsystemBase {
     private static final double FORWARD_SOFT_LIMIT = 5.760;
     private static final double REVERSE_SOFT_LIMIT = 0.15;
 
+    private static final double INTAKE_MOTOR_SPEED = 0.72;
+    private static final double INTAKE_PIVOT_SPEED = 0.25;
+
     private static final SoftwareLimitSwitchConfigs INTAKE_PIVOT_SOFTWARE_CONFIGS = new SoftwareLimitSwitchConfigs()
   .withForwardSoftLimitEnable(true)
   .withReverseSoftLimitEnable(true)
@@ -152,6 +155,20 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public Command setIntakePivotSpeed(double output){
     return runOnce(() -> intakePivotLeft.set(output));
+  }
+
+  public Command intakeOut() {
+    return runOnce(() -> {
+      intakeMotor.set(IntakeConstants.INTAKE_MOTOR_SPEED);
+      intakePivotLeft.set(IntakeConstants.INTAKE_PIVOT_SPEED);
+    });
+  }
+
+  public Command intakeIn() {
+    return runOnce(() -> {
+      intakeMotor.set(0);
+      intakePivotLeft.set(-IntakeConstants.INTAKE_PIVOT_SPEED);
+    });
   }
 
   public void stopIntake(){

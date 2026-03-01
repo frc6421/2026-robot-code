@@ -6,6 +6,7 @@ package frc.robot;
 
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.TrajectoryConstants;
+import frc.robot.Constants.TransitionConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
 import frc.robot.command.autoCommands.AutoNoneCommand;
@@ -158,8 +159,11 @@ public class RobotContainer{
 
     drivetrain.registerTelemetry(logger::telemeterize);
 
-    shooterSubsystem.setDefaultCommand(new RunCommand(() -> shooterSubsystem.shootOnTheMove(() -> drivetrain.getState().Pose, () -> drivetrain.getState().Speeds)));
-    // joystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(15.0)));
+    shooterSubsystem.setDefaultCommand(new RunCommand(() -> shooterSubsystem.update(drivetrain.getState().Pose, drivetrain.getState().Speeds), shooterSubsystem));
+    // transitionSubsystem.setDefaultCommand(transitionSubsystem.shooterTransition(
+    //   TransitionConstants.TRANSITION_SHOOTER_SPEED, TransitionConstants.TRANSITION_HOPPER_SPEED));
+    // intakeSubsystem.setDefaultCommand(intakeSubsystem.intakeOut());
+    // joystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(45)));
     // joystick.y().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(0.0)));
 
     // joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.85)));
@@ -213,8 +217,8 @@ public class RobotContainer{
   // // TrajectoryConstants.RED_ALLIANCE));
 
 
-  // joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
-  // joystick.start().onTrue(drivetrain.resetGyro());
+  joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
+  joystick.start().onTrue(drivetrain.resetGyro());
 
   // //passing
 

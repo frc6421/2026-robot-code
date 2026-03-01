@@ -77,8 +77,8 @@ public final class Constants {
     public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(555.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
 
-    public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(605.12), Inches.of(100)); // TODO find value
-    public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(555.12), Inches.of(100));// TODO find value
+    public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(414.785), Inches.of(158.32));
+    public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(235.335), Inches.of(158.32));
 
   }
 

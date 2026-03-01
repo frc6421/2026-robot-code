@@ -89,13 +89,13 @@ public class WarriorCamera implements Sendable {
     // -.24, -.27, .10
 
     /*The amount each camera is off from the center of the robot */
-    public final static Transform3d BACK_LEFT_BACK_FACING = new Transform3d(new Translation3d(-.3425, .267, .19), // 1
+    public final static Transform3d BACK_CAM_OFFSET = new Transform3d(new Translation3d(-.3425, .267, .19), // 1
         new Rotation3d(Units.degreesToRadians(0.5), Units.degreesToRadians(-24.5),
             Units.degreesToRadians(180)));
-    public final static Transform3d BACK_LEFT_LEFT_FACING = new Transform3d(new Translation3d(-.244, .2678, 0.022), // 2
+    public final static Transform3d LEFT_CAM_OFFSET = new Transform3d(new Translation3d(-.244, .2678, 0.022), // 2
         new Rotation3d(Units.degreesToRadians(-0.6), Units.degreesToRadians(-25.2),
             Units.degreesToRadians(91.0)));
-    public final static Transform3d BACK_RIGHT = new Transform3d(new Translation3d(-.301, -.261, 0.15), // 3
+    public final static Transform3d RIGHT_CAM_OFFSET = new Transform3d(new Translation3d(-.301, -.261, 0.15), // 3
         new Rotation3d(Units.degreesToRadians(0.5), Units.degreesToRadians(-22.8),
             Units.degreesToRadians(273)));
 

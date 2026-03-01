@@ -39,7 +39,7 @@ public class ShootOnTheMove {
         double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(ShooterConstants.HOOD_ANGLE_SHOOT));
 
         //minus vectors
-        Translation2d robotVelocityVector = new Translation2d(robotSpeed.get().vxMetersPerSecond, robotSpeed.get().vyMetersPerSecond);
+        Translation2d robotVelocityVector = new Translation2d(robotSpeed.get().vxMetersPerSecond, robotSpeed.get().vyMetersPerSecond).rotateBy(robotPose.get().getRotation());
         Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
 
         //get the angles and stuff

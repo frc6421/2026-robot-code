@@ -26,11 +26,15 @@ import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.ctre.phoenix6.sim.TalonFXSimState;
 
+import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.system.plant.DCMotor;
 import edu.wpi.first.units.measure.Velocity;
 import edu.wpi.first.util.sendable.SendableBuilder;
+import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.Servo;
 import edu.wpi.first.wpilibj.simulation.ElevatorSim;
 import edu.wpi.first.wpilibj.simulation.SingleJointedArmSim;
@@ -38,8 +42,11 @@ import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.robot.Constants.TrajectoryConstants;
+import frc.robot.SOTMTable;
 import frc.robot.ShootOnTheMove;
 import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
+import frc.robot.Constants.ShooterConstants;
 
 public class ShooterSubsystem extends SubsystemBase {
 
@@ -59,7 +66,9 @@ public class ShooterSubsystem extends SubsystemBase {
   private VelocityVoltage shooterRequest;
   private PositionVoltage shooterRequestTurn;
 
-  private ShootOnTheMove shootOnTheMove = new ShootOnTheMove();
+  private double setAngle = 0.0;
+  private double shotAngle = 0.0;
+  private double horizSpeed = 0.0;
 
   private TalonFXSimState shooterTurnSim;
 
@@ -107,7 +116,7 @@ public class ShooterSubsystem extends SubsystemBase {
     private static final class SHOOTER_TURN_PID_VALUES {
     private static final double kP = 2.015;
 
-    private static final double kS = 0.3935;
+    private static final double kS = 0.3835;
 
     private static final double kV = 0.1;
 
@@ -244,13 +253,14 @@ public class ShooterSubsystem extends SubsystemBase {
   public double getHoodAngle() {
     return ShooterConstants.SHOOTER_HOOD_MAXIMUM_ANGLE - (getActuatorLength() * ShooterConstants.SHOOTER_HOOD_MAX_CHANGE_ANGLE);
   }
+
+  public double getShooterAngle() {
+    return shooterMotorTurn.getRotorPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE;
+  }
   public void setOutput(double output) {
     shooterMotorLeft.set(output);
   }
 
-  public void shootOnTheMove(Supplier<Pose2d> pose, Supplier<ChassisSpeeds> speeds) {
-    shootOnTheMove.update(pose, speeds, this);
-  }
   public void stopShooter(){
     shooterMotorLeft.stopMotor();
   }
@@ -258,6 +268,40 @@ public class ShooterSubsystem extends SubsystemBase {
   public void stopShooterTurn() {
     shooterMotorTurn.stopMotor();
   }
+
+  public void update(Pose2d robotPose, ChassisSpeeds robotSpeed) {
+
+        //Latency
+        double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        Translation2d futurePos = robotPose.getTranslation().plus(
+            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+        );
+
+        //get Target Vecotr
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_HUB_GOAL : TrajectoryConstants.RED_HUB_GOAL;
+        Translation2d targetVector = goalLocation.minus(futurePos);
+        double distance = targetVector.getNorm();
+
+        double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+        double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+
+        //minus vectors
+        Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+
+        //get the angles and stuff
+        double turretAngle = shotVector.getAngle().plus(robotPose.getRotation()).getDegrees();
+        double newHorizontalSpeed = shotVector.getNorm();
+
+        // this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
+        this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
+
+        setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        shotAngle = shotVector.getAngle().getDegrees();
+        horizSpeed = idealHorizontalSpeed;
+        
+    }
+
 
   @Override
   public void periodic() {
@@ -271,12 +315,11 @@ public class ShooterSubsystem extends SubsystemBase {
 
     builder.addDoubleProperty("Shooter RPM", () -> shooterMotorLeft.getVelocity().getValueAsDouble()*60, null);
     builder.addDoubleProperty("Shooter Voltage", () -> shooterMotorLeft.getMotorVoltage().getValueAsDouble(), null);
-    //C'est Turner.
-    builder.addDoubleProperty("ShooterTurn Voltage", () -> shooterMotorTurn.getMotorVoltage().getValueAsDouble(), null);
-    builder.addDoubleProperty("ShooterTurn Velocity", () -> shooterMotorTurn.getVelocity().getValueAsDouble(), null);
-    builder.addDoubleProperty("ShooterTurn Rotations", () -> shooterMotorTurn.getPosition().getValueAsDouble(), null);
-    builder.addDoubleProperty("ShooterTurn Angle", () -> (shooterMotorTurn.getPosition().getValueAsDouble() / ShooterConstants.SHOOTER_ROTATIONS_PER_DEGREE), null);
-    builder.addDoubleProperty("ShooterTurn SetAngle", shootOnTheMove.getSetAngle(), null);
+    
+
+    builder.addDoubleProperty("ShooterTurn SetAngle", () -> setAngle, null);
+    builder.addDoubleProperty("Shooter Angle", () -> getShooterAngle(), null);
+    builder.addDoubleProperty("TargetHorizontalSpeed", () -> horizSpeed, null);
 
     builder.addDoubleProperty("Actuator Length", () -> leftActuator.getPosition(), null);
   }
