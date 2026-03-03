@@ -274,112 +274,159 @@ public class ShooterSubsystem extends SubsystemBase {
 
   public void updateSOTM(Pose2d robotPose, ChassisSpeeds robotSpeed) {
 
-        //Latency
-        double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        // 1. LATENCY COMP
+        double latency = 0.15; // Tuned constant
         Translation2d futurePos = robotPose.getTranslation().plus(
-            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency)
         );
 
-        //get Target Vecotr
+        // 2. GET TARGET VECTOR
         Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_HUB_GOAL : TrajectoryConstants.RED_HUB_GOAL;
-        Translation2d targetVector = goalLocation.minus(futurePos);
-        double distance = targetVector.getNorm();
+        Translation2d targetVec = goalLocation.minus(futurePos);
+        double dist = targetVec.getNorm();
 
-        double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
-        double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+        // 3. CALCULATE IDEAL SHOT (Stationary)
+        // Note: This returns HORIZONTAL velocity component
+        double idealHorizontalSpeed = (SOTMTable.getSpeed(dist) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+        double idealVerticalSpeed = (SOTMTable.getSpeed(dist) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
 
-        //minus vectors
-        Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
-        Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+        // 4. VECTOR SUBTRACTION
+        Translation2d robotVelVec = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        Translation2d shotVec = targetVec.div(dist).times(idealHorizontalSpeed).minus(robotVelVec);
 
-        //get the angles and stuff
-        double turretAngle = shotVector.getAngle().plus(robotPose.getRotation()).getDegrees();
-        double newHorizontalSpeed = shotVector.getNorm();
+        // 5. CONVERT TO CONTROLS
+        double turretAngle = shotVec.getAngle().getDegrees();
+        double newHorizontalSpeed = shotVec.getNorm();
+        
 
-        // this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
-        this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
+        // 6. SOLVE FOR NEW PITCH/RPM
+        // Assuming constant total exit velocity, variable hood:
+        double totalExitVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed); // m/s
+        // Clamp to avoid domain errors if we need more speed than possible
+        double ratio = Math.min(newHorizontalSpeed / totalExitVelocity, 1.0);
+        double newPitch = Math.acos(ratio);
 
-        setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
-        turretLigament.setAngle(setAngle + 180);
-        shotAngle = shotVector.getAngle().getDegrees();
+        // 7. SET OUTPUTS
+        // this.turnShooter(MathUtil.inputModulus(turretAngle - 180, -180, 180));
+        // this.setRPM(totalExitVelocity / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * 60);
+        // // //Latency
+        // double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        // Translation2d futurePos = robotPose.getTranslation().plus(
+        //     new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+        // );
+
+        // //get Target Vecotr
+        // Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_HUB_GOAL : TrajectoryConstants.RED_HUB_GOAL;
+        // Translation2d targetVector = goalLocation.minus(futurePos);
+        // double distance = targetVector.getNorm();
+
+        // double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+        // double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+
+        // //minus vectors
+        // Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        // Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+
+        // //get the angles and stuff
+        // double turretAngle = shotVector.getAngle().plus(robotPose.getRotation()).getDegrees();
+        // double newHorizontalSpeed = shotVector.getNorm();
+
+        this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
+        this.turnShooter(MathUtil.inputModulus(360 - turretAngle - 180.0, -180, 180));
+
+        // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        turretLigament.setAngle(MathUtil.inputModulus(360 - turretAngle - 180, -180, 180) + 180);
+        //shotAngle = shotVector.getAngle().getDegrees();
         horizSpeed = idealHorizontalSpeed;
         
     }
 
   public void updateHighPOTM(Pose2d robotPose, ChassisSpeeds robotSpeed) {
 
-        //Latency
-        double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        // 1. LATENCY COMP
+        double latency = 0.15; // Tuned constant
         Translation2d futurePos = robotPose.getTranslation().plus(
-            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency)
         );
 
-        //get Target Vecotr
-        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_D.getTranslation() : TrajectoryConstants.RED_BUMP_O.getTranslation();
-        Translation2d targetVector = goalLocation.minus(futurePos);
-        double distance = targetVector.getNorm();
+        // 2. GET TARGET VECTOR
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_D.getTranslation(): TrajectoryConstants.RED_BUMP_O.getTranslation();
+        Translation2d targetVec = goalLocation.minus(futurePos);
+        double dist = targetVec.getNorm();
 
-        double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(this.getHoodAngle()));
-        double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(this.getHoodAngle()));
+        // 3. CALCULATE IDEAL SHOT (Stationary)
+        // Note: This returns HORIZONTAL velocity component
+        double idealHorizontalSpeed = (SOTMTable.getSpeed(dist) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+        double idealVerticalSpeed = (SOTMTable.getSpeed(dist) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
 
-        //minus vectors
-        Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
-        Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+        // 4. VECTOR SUBTRACTION
+        Translation2d robotVelVec = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        Translation2d shotVec = targetVec.div(dist).times(idealHorizontalSpeed).minus(robotVelVec);
 
-        //get the angles and stuff
-        double turretAngle = shotVector.getAngle().getDegrees();
-        double newHorizontalSpeed = shotVector.getNorm();
-
-        double totalVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed);
-
-        double ratio = Math.min(newHorizontalSpeed / totalVelocity, 1.0);
-        double newHoodAngle = Math.acos(ratio);
-
-        setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
-        turretLigament.setAngle(setAngle + 180);
-        horizSpeed = idealHorizontalSpeed;
+        // 5. CONVERT TO CONTROLS
+        double turretAngle = shotVec.getAngle().getDegrees();
+        double newHorizontalSpeed = shotVec.getNorm();
         
+
+        // 6. SOLVE FOR NEW PITCH/RPM
+        // Assuming constant total exit velocity, variable hood:
+        double totalExitVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed); // m/s
+        // Clamp to avoid domain errors if we need more speed than possible
+        double ratio = Math.min(newHorizontalSpeed / totalExitVelocity, 1.0);
+        double newPitch = Math.acos(ratio);
+
         this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
-        this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
-        this.setHoodAngle(newHoodAngle);
+        this.turnShooter(MathUtil.inputModulus(360 - turretAngle, -180, 180));
+        this.setHoodAngle(newPitch);
+
+        // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        turretLigament.setAngle(MathUtil.inputModulus(180 - turretAngle, -180, 180) + 180);
+        //shotAngle = shotVector.getAngle().getDegrees();
+        horizSpeed = idealHorizontalSpeed;        
     }
 
   public void updateLowPOTM(Pose2d robotPose, ChassisSpeeds robotSpeed) {
 
-        //Latency
-        double latency = frc.robot.Constants.ShooterConstants.LATENCY_SEC;
+        // 1. LATENCY COMP
+        double latency = 0.15; // Tuned constant
         Translation2d futurePos = robotPose.getTranslation().plus(
-            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency).rotateBy(robotPose.getRotation())
+            new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond).times(latency)
         );
 
-        //get Target Vecotr
-        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_O.getTranslation() : TrajectoryConstants.RED_BUMP_D.getTranslation();
-        Translation2d targetVector = goalLocation.minus(futurePos);
-        double distance = targetVector.getNorm();
+        // 2. GET TARGET VECTOR
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_O.getTranslation(): TrajectoryConstants.RED_BUMP_D.getTranslation();
+        Translation2d targetVec = goalLocation.minus(futurePos);
+        double dist = targetVec.getNorm();
 
-        double idealHorizontalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(this.getHoodAngle()));
-        double idealVerticalSpeed = (SOTMTable.getSpeed(distance) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(this.getHoodAngle()));
+        // 3. CALCULATE IDEAL SHOT (Stationary)
+        // Note: This returns HORIZONTAL velocity component
+        double idealHorizontalSpeed = (SOTMTable.getSpeed(dist) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.cos(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
+        double idealVerticalSpeed = (SOTMTable.getSpeed(dist) / 60.0) * (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI) * Math.sin(Math.toRadians(frc.robot.Constants.ShooterConstants.HOOD_ANGLE_SHOOT));
 
-        //minus vectors
-        Translation2d robotVelocityVector = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
-        Translation2d shotVector = targetVector.div(distance).times(idealHorizontalSpeed).minus(robotVelocityVector);
+        // 4. VECTOR SUBTRACTION
+        Translation2d robotVelVec = new Translation2d(robotSpeed.vxMetersPerSecond, robotSpeed.vyMetersPerSecond);
+        Translation2d shotVec = targetVec.div(dist).times(idealHorizontalSpeed).minus(robotVelVec);
 
-        //get the angles and stuff
-        double turretAngle = shotVector.getAngle().getDegrees();
-        double newHorizontalSpeed = shotVector.getNorm();
-
-        double totalVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed);
-
-        double ratio = Math.min(newHorizontalSpeed / totalVelocity, 1.0);
-        double newHoodAngle = Math.acos(ratio);
-
-        setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
-        turretLigament.setAngle(setAngle + 180);
-        horizSpeed = idealHorizontalSpeed;
+        // 5. CONVERT TO CONTROLS
+        double turretAngle = shotVec.getAngle().getDegrees();
+        double newHorizontalSpeed = shotVec.getNorm();
         
+
+        // 6. SOLVE FOR NEW PITCH/RPM
+        // Assuming constant total exit velocity, variable hood:
+        double totalExitVelocity = Math.hypot(newHorizontalSpeed, idealVerticalSpeed); // m/s
+        // Clamp to avoid domain errors if we need more speed than possible
+        double ratio = Math.min(newHorizontalSpeed / totalExitVelocity, 1.0);
+        double newPitch = Math.acos(ratio);
+
         this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
-        this.turnShooter(MathUtil.inputModulus(turretAngle - 180.0, -180, 180));
-        this.setHoodAngle(newHoodAngle);
+        this.turnShooter(MathUtil.inputModulus(360 - turretAngle, -180, 180));
+        this.setHoodAngle(newPitch);
+
+        // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
+        turretLigament.setAngle(MathUtil.inputModulus(180 - turretAngle, -180, 180) + 180);
+        //shotAngle = shotVector.getAngle().getDegrees();
+        horizSpeed = idealHorizontalSpeed;        
     }
 
 

@@ -157,18 +157,14 @@ public class IntakeSubsystem extends SubsystemBase {
     return runOnce(() -> intakePivotLeft.set(output));
   }
 
-  public Command intakeOut() {
-    return runOnce(() -> {
+  public void intakeOut() {
       intakeMotor.set(IntakeConstants.INTAKE_MOTOR_SPEED);
       intakePivotLeft.set(IntakeConstants.INTAKE_PIVOT_SPEED);
-    });
   }
 
-  public Command intakeIn() {
-    return runOnce(() -> {
+  public void intakeIn() {
       intakeMotor.set(0);
       intakePivotLeft.set(-IntakeConstants.INTAKE_PIVOT_SPEED);
-    });
   }
 
   public void stopIntake(){

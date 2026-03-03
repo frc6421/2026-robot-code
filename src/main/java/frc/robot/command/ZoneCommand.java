@@ -54,7 +54,6 @@ public class ZoneCommand extends Command {
     //   currentState.get().Pose) + "::" + 
     //   (Zones.neutralZone.isPointInZone(currentState.get().Pose) || Zones.opposingZone.isPointInZone(currentState.get().Pose)));
     if (Zones.allianceZone.isPointInZone(currentState.get().Pose)) {
-      System.out.println("Alliance");
       intakeSubsystem.intakeOut();
       shooterSubsystem.updateSOTM(currentState.get().Pose, currentState.get().Speeds);
       transitionSubsystem.shooterTransition(
@@ -63,7 +62,7 @@ public class ZoneCommand extends Command {
       
     }
     else if (Zones.neutralHighZone.isPointInZone(currentState.get().Pose) || Zones.opposingZone.isPointInZone(currentState.get().Pose)){
-      System.out.println("Neutral or Opposing High");
+      System.out.println("neutral high");
       intakeSubsystem.intakeOut();
       shooterSubsystem.updateHighPOTM(currentState.get().Pose, currentState.get().Speeds);
       transitionSubsystem.shooterTransition(
@@ -72,7 +71,7 @@ public class ZoneCommand extends Command {
     }
 
     else if (Zones.neutralLowZone.isPointInZone(currentState.get().Pose) || Zones.opposingZone.isPointInZone(currentState.get().Pose)){
-      System.out.println("Neutral or Opposing Low");
+      System.out.println("neutral low");
       intakeSubsystem.intakeOut();
       shooterSubsystem.updateLowPOTM(currentState.get().Pose, currentState.get().Speeds);
       transitionSubsystem.shooterTransition(

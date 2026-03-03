@@ -20,9 +20,9 @@ public class RedPreloadCommand extends SequentialCommandGroup {
     addCommands(
       driveSubsystem.profiledAlignCommand(() -> Constants.TrajectoryConstants.RED_ALLIANCE),
       new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM),
-      transitionSubsystem.shooterTransition(
+      new InstantCommand(() -> transitionSubsystem.shooterTransition(
         Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
-        Constants.TransitionConstants.TRANSITION_HOPPER_SPEED),
+        Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)),
       new WaitCommand(3.5),
       new InstantCommand(() -> transitionSubsystem.stopTransition()),
       new InstantCommand(() -> shooterSubsystem.stopShooter())
