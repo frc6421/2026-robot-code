@@ -350,7 +350,7 @@ public class ShooterSubsystem extends SubsystemBase {
         );
 
         // 2. GET TARGET VECTOR
-        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_D.getTranslation(): TrajectoryConstants.RED_BUMP_O.getTranslation();
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_D_L.getTranslation(): TrajectoryConstants.RED_BUMP_O_L.getTranslation();
         Translation2d targetVec = goalLocation.minus(futurePos);
         double dist = targetVec.getNorm();
 
@@ -394,7 +394,7 @@ public class ShooterSubsystem extends SubsystemBase {
         );
 
         // 2. GET TARGET VECTOR
-        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_O.getTranslation(): TrajectoryConstants.RED_BUMP_D.getTranslation();
+        Translation2d goalLocation = (DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue) ? TrajectoryConstants.BLUE_BUMP_O_L.getTranslation(): TrajectoryConstants.RED_BUMP_D_L.getTranslation();
         Translation2d targetVec = goalLocation.minus(futurePos);
         double dist = targetVec.getNorm();
 

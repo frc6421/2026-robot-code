@@ -10,9 +10,6 @@ import frc.robot.Constants.TransitionConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
 import frc.robot.command.ZoneCommand;
-import frc.robot.command.autoCommands.BluePreloadCommand;
-import frc.robot.command.autoCommands.ClimbAutoCommand;
-import frc.robot.command.autoCommands.RedPreloadCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -74,9 +71,6 @@ public class RobotContainer{
   private final ClimbCommand climbGoesDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
   private final ShooterRevUp shootingRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
   private final ZoneCommand zoneCommand = new ZoneCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
-  private final BluePreloadCommand bluePreloadCommand = new BluePreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  private final RedPreloadCommand redPreloadCommand = new RedPreloadCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  private final ClimbAutoCommand climbAutoCommand = new ClimbAutoCommand(climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
 
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -96,9 +90,6 @@ public class RobotContainer{
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     autoChooser = new SendableChooser<>();
-    autoChooser.addOption("Red Preload", redPreloadCommand);
-    autoChooser.addOption("Blue Preload", bluePreloadCommand);
-    autoChooser.addOption("Climb Auto", climbAutoCommand);
 
     hoodChooser = new SendableChooser<>();
     hoodChooser.addOption("Pass", Constants.ShooterConstants.ACTUATOR_PASSING);

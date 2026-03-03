@@ -37,6 +37,9 @@ public final class Constants {
 
     public static double MAX_POSITION_ERROR_METERS = 0.08;
     public static double MAX_DEGREES_ERROR = 0.5;
+
+    public static double MAX_POSITION_ERROR_METERS_AUTO = 0.2;
+
   }
 
   public static class AutoConstants {
@@ -70,25 +73,28 @@ public final class Constants {
     public static final Pose2d BLUE_OUTPOST = new Pose2d (new Translation2d(Inches.of(0.5), Inches.of(25.62)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d RED_OUTPOST = new Pose2d (new Translation2d(Inches.of(649.62), Inches.of(291.02)), new Rotation2d(Degrees.of(0)));
     
-    public static final Pose2d BLUE_TOWER_DEPOT = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d RED_TOWER_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    //public static final Pose2d BLUE_TOWER_DEPOT = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    //public static final Pose2d RED_TOWER_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
 
-    public static final Pose2d BLUE_TOWER_OUTPOST = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d RED_TOWER_OUTPOST = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    //public static final Pose2d BLUE_TOWER_OUTPOST = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    //public static final Pose2d RED_TOWER_OUTPOST = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
 
-    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0).in(Meters), Inches.of(146.86).in(Meters)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12).in(Meters), Inches.of(169.78).in(Meters)), new Rotation2d(Degrees.of(360)));
+    //public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0).in(Meters), Inches.of(146.86).in(Meters)), new Rotation2d(Degrees.of(180)));
+    //public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12).in(Meters), Inches.of(169.78).in(Meters)), new Rotation2d(Degrees.of(360)));
    
-    public static final Pose2d BLUE_DEPOT_SIDE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d RED_DEPOT_SIDE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    //public static final Pose2d BLUE_DEPOT_SIDE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    //public static final Pose2d RED_DEPOT_SIDE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
 
-    public static final Pose2d BLUE_OUTPOST_SIDE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d RED_OUTPOST_SIDE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    //public static final Pose2d BLUE_OUTPOST_SIDE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
+    //public static final Pose2d RED_OUTPOST_SIDE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
 
     public static final Pose2d NEUTRAL_BO = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(67.37)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d NEUTRAL_BD = new Pose2d (new Translation2d(Inches.of(289.11), Inches.of(249.27)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d NEUTRAL_RO = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(249.27)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d NEUTRAL_RD = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(67.37)), new Rotation2d(Degrees.of(180)));
+
+    public static final Pose2d RD_FAR_EDGE = new Pose2d (new Translation2d(Inches.of(325.06), Inches.of(85.0)), new Rotation2d(Degrees.of(270)));
+    public static final Pose2d NEUTRAL_RD_EDGE = new Pose2d (new Translation2d(Inches.of(361.01), Inches.of(100.0)), new Rotation2d(Degrees.of(0)));
 
     public static final Pose2d CENTER_FACE_RED = new Pose2d (new Translation2d(Inches.of(325.06), Inches.of(158.32)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d CENTER_FACE_BLUE = new Pose2d (new Translation2d(Inches.of(325.06), Inches.of(158.32)), new Rotation2d(Degrees.of(180)));
@@ -105,12 +111,16 @@ public final class Constants {
     public static final Pose2d RED_BUMP_O_R = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(218.58)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d RED_BUMP_D_R = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(0)));
   
-  
-    public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
-    public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(555.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(150)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(555.12), Inches.of(150)), new Rotation2d(Degrees.of(0)));
 
-    public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(414.785), Inches.of(158.32));
-    public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(235.335), Inches.of(158.32));
+    public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(468.565), Inches.of(158.32)); //wrong x values, formerly 414.785
+    public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(181.555), Inches.of(158.32)); //wrong x values, formerly 235.335
+
+    public static final Pose2d RED_DEPOT_SCORE = new Pose2d (new Translation2d(Inches.of(520), Inches.of(98)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_OUTPOST_SCORE = new Pose2d (new Translation2d(Inches.of(520), Inches.of(218)), new Rotation2d(Degrees.of(0)));
+
+    public static final Pose2d RED_D_WALL = new Pose2d (new Translation2d(Inches.of(570), Inches.of(35)), new Rotation2d(Degrees.of(0)));
 
   }
 

@@ -537,4 +537,32 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         alignAngleRequest.HeadingController.atSetpoint());
         
     }
+
+        public Command profiledAutonAlignCommand(Supplier<Pose2d> targetPose) {
+        alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
+        alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(5.0), Units.degreesToRadians(5.0));
+        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .2);
+        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .2);
+        return applyRequest(() ->  {
+
+          posePublisher.accept(targetPose2d);
+          Pose2d currentPose = getState().Pose;
+          xControllerProfiled.setGoal(targetPose2d.getX());
+          yControllerProfiled.setGoal(targetPose2d.getY());
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose2d.getX());
+          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose2d.getY());
+          
+          return alignAngleRequest.withTargetDirection(targetPose2d.getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+        }).beforeStarting(() -> {
+            targetPose2d = targetPose.get();
+            Pose2d currentPose = getState().Pose;
+            xControllerProfiled.reset(currentPose.getX(), getState().Speeds.vxMetersPerSecond);  
+            yControllerProfiled.reset(currentPose.getY(), getState().Speeds.vyMetersPerSecond);  
+        }
+        ).until(() -> 
+        xControllerProfiled.atGoal() && 
+        yControllerProfiled.atGoal() && 
+        alignAngleRequest.HeadingController.atSetpoint());
+        
+    }
 }
