@@ -6,6 +6,7 @@ package frc.robot;
 
 import static edu.wpi.first.units.Units.Degrees;
 import static edu.wpi.first.units.Units.Inches;
+import static edu.wpi.first.units.Units.Meters;
 
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -29,11 +30,12 @@ public final class Constants {
   }
 
   public static class AlignConstants {
-    public static double ALIGN_P = 4;
+    public static double ALIGN_P = 2.0;
     public static double MAX_VELOCITY = 2.5;
     public static double MAX_ACCELERATION = 4.5;
+    public static double VISION_ERROR_ACCOUNT = 0.15;
 
-    public static double MAX_POSITION_ERROR_METERS = 0.015;
+    public static double MAX_POSITION_ERROR_METERS = 0.08;
     public static double MAX_DEGREES_ERROR = 0.5;
   }
 
@@ -51,7 +53,7 @@ public final class Constants {
     public static final double Y_DRIVE_I = 0;
     public static final double Y_DRIVE_D = 0.1;
 
-    public static final double THETA_P = 10.0;
+    public static final double THETA_P = 5.0;
     public static final double THETA_I = 0;
     public static final double THETA_D = 0;
   }
@@ -74,8 +76,8 @@ public final class Constants {
     public static final Pose2d BLUE_TOWER_OUTPOST = new Pose2d (new Translation2d(Inches.of(45.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d RED_TOWER_OUTPOST = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
 
-    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
-    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
+    public static final Pose2d BLUE_ALLIANCE = new Pose2d (new Translation2d(Inches.of(60.0).in(Meters), Inches.of(146.86).in(Meters)), new Rotation2d(Degrees.of(180)));
+    public static final Pose2d RED_ALLIANCE = new Pose2d (new Translation2d(Inches.of(590.12).in(Meters), Inches.of(169.78).in(Meters)), new Rotation2d(Degrees.of(360)));
    
     public static final Pose2d BLUE_DEPOT_SIDE = new Pose2d (new Translation2d(Inches.of(60.0), Inches.of(146.86)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d RED_DEPOT_SIDE = new Pose2d (new Translation2d(Inches.of(590.12), Inches.of(169.78)), new Rotation2d(Degrees.of(360)));
@@ -103,6 +105,13 @@ public final class Constants {
     public static final Pose2d RED_BUMP_O_R = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(218.58)), new Rotation2d(Degrees.of(0)));
     public static final Pose2d RED_BUMP_D_R = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(0)));
   
+  
+    public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(605.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(555.12), Inches.of(100)), new Rotation2d(Degrees.of(0)));
+
+    public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(414.785), Inches.of(158.32));
+    public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(235.335), Inches.of(158.32));
+
   }
 
   public static class ClimbPositions {
@@ -114,6 +123,7 @@ public final class Constants {
     public static final double INTAKE_RETRACTED_DEGREES = 0;
     public static final double INTAKE_EXTENDED_DEGREES = 90;
     public static final double INTAKE_SPEED = 0.72;
+    public static final double INTAKE_PIVOT_SPEED = 0.25;
   }
 
   public static class TransitionConstants {
@@ -125,5 +135,13 @@ public final class Constants {
     public static final double SHOOTER_RPM = 3500;
     public static final double ACTUATOR_PASSING = 0.38;
     public static final double ACTUATOR_SHOOTING = 0.02;
+
+    //SOTM
+    public static final double LATENCY_SEC = 0.10;
+    public static final double WHEEL_DIAMETER = 0.1016; // METERS
+    public static final double HOOD_ANGLE_SHOOT = 69.5; // DEGREES
+    public static final double HOOD_ANGLE_PASS_NEU_CLOSE = 69.5; // DEGREES
+    public static final double HOOD_ANGLE_PASS_NEU_FAR = 69.5; // DEGREES
+    public static final double HOOD_ANGLE_PASS_OPP_ALL = 55.0; // DEGREES
   }
 }
