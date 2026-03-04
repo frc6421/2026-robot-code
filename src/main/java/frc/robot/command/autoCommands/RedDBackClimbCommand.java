@@ -4,6 +4,7 @@
 
 package frc.robot.command.autoCommands;
 
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
@@ -37,10 +38,12 @@ public class RedDBackClimbCommand extends SequentialCommandGroup {
       zoneCommand, 
       new WaitCommand(2),
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_BUMP_D_L),
+      new InstantCommand(() -> zoneCommand.cancel()),
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD), 
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RD_FAR_EDGE), 
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD_EDGE),
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_BUMP_D_R), 
+      zoneCommand,
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE)
     );
   }

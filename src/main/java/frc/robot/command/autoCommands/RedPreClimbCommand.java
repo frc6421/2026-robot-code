@@ -42,6 +42,7 @@ public class RedPreClimbCommand extends SequentialCommandGroup {
       zoneCommand,
       new WaitCommand(2),
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT_OFFSET), 
+      new InstantCommand(() -> zoneCommand.cancel()),
       driveSubsystem.profiledAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT)
     );
   }

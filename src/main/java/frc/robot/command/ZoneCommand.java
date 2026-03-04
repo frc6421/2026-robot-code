@@ -61,7 +61,7 @@ public class ZoneCommand extends Command {
         TransitionConstants.TRANSITION_HOPPER_SPEED);
       
     }
-    else if (Zones.neutralHighZone.isPointInZone(currentState.get().Pose) || Zones.opposingZone.isPointInZone(currentState.get().Pose)){
+    else if (Zones.neutralHighZone.isPointInZone(currentState.get().Pose) || Zones.opposingZoneHigh.isPointInZone(currentState.get().Pose)){
       System.out.println("neutral high");
       intakeSubsystem.intakeOut();
       shooterSubsystem.updateHighPOTM(currentState.get().Pose, currentState.get().Speeds);
@@ -70,7 +70,7 @@ public class ZoneCommand extends Command {
         TransitionConstants.TRANSITION_HOPPER_SPEED);
     }
 
-    else if (Zones.neutralLowZone.isPointInZone(currentState.get().Pose) || Zones.opposingZone.isPointInZone(currentState.get().Pose)){
+    else if (Zones.neutralLowZone.isPointInZone(currentState.get().Pose) || Zones.opposingZoneLow.isPointInZone(currentState.get().Pose)){
       System.out.println("neutral low");
       intakeSubsystem.intakeOut();
       shooterSubsystem.updateLowPOTM(currentState.get().Pose, currentState.get().Speeds);
@@ -82,7 +82,14 @@ public class ZoneCommand extends Command {
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    intakeSubsystem.stopIntake();
+    intakeSubsystem.stopIntakePivot();
+    transitionSubsystem.shooterTransition(
+        0.0, 0.0);
+    shooterSubsystem.stopShooter();
+    shooterSubsystem.stopShooterTurn();
+  }
 
   // Returns true when the command should end.
   @Override

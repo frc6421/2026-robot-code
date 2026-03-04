@@ -72,9 +72,13 @@ public record Zones() {
      ? new Zone(AreaList.BLUE_ALLIANCE.TOP_LEFT, AreaList.BLUE_ALLIANCE.WIDTH, AreaList.BLUE_ALLIANCE.HEIGHT) : 
      new Zone(AreaList.RED_ALLIANCE.TOP_LEFT, AreaList.RED_ALLIANCE.WIDTH, AreaList.RED_ALLIANCE.HEIGHT);
 
-    public static Zone opposingZone = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
-    ? new Zone(AreaList.RED_ALLIANCE.TOP_LEFT, AreaList.RED_ALLIANCE.WIDTH, AreaList.RED_ALLIANCE.HEIGHT) : 
-     new Zone(AreaList.BLUE_ALLIANCE.TOP_LEFT, AreaList.BLUE_ALLIANCE.WIDTH, AreaList.BLUE_ALLIANCE.HEIGHT);
+    public static Zone opposingZoneHigh = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+    ? new Zone(AreaList.RED_ALLIANCE.TOP_LEFT, AreaList.RED_ALLIANCE.WIDTH, AreaList.RED_ALLIANCE.HEIGHT / 2) : 
+     new Zone(AreaList.BLUE_ALLIANCE.TOP_LEFT, AreaList.BLUE_ALLIANCE.WIDTH, AreaList.BLUE_ALLIANCE.HEIGHT / 2);
+
+    public static Zone opposingZoneLow = DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Blue
+    ? new Zone(new Translation2d(469.11, AreaList.RED_ALLIANCE.TOP_LEFT.getY() - AreaList.RED_ALLIANCE.HEIGHT / 2), AreaList.RED_ALLIANCE.WIDTH, AreaList.RED_ALLIANCE.HEIGHT) : 
+     new Zone(new Translation2d(0, AreaList.RED_ALLIANCE.HEIGHT / 2), AreaList.BLUE_ALLIANCE.WIDTH, AreaList.BLUE_ALLIANCE.HEIGHT);
 
     public static Zone neutralHighZone = new Zone(AreaList.NEUTRAL_HIGH.TOP_LEFT, AreaList.NEUTRAL_HIGH.WIDTH, AreaList.NEUTRAL_HIGH.HEIGHT);
     public static Zone neutralLowZone = new Zone(AreaList.NEUTRAL_LOW.TOP_LEFT, AreaList.NEUTRAL_LOW.WIDTH, AreaList.NEUTRAL_LOW.HEIGHT);
