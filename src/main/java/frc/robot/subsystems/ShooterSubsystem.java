@@ -209,8 +209,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
     double rps = rpm/60.0;
 
-    shooterRequest.withVelocity(rps).withFeedForward(ShooterConstants.SHOOTER_PID_VALUES.kV * rps);
-
+    shooterRequest = shooterRequest.withVelocity(rps).withFeedForward(ShooterConstants.SHOOTER_PID_VALUES.kV * rps);
     shooterMotorLeft.setControl(shooterRequest);
   }
 
