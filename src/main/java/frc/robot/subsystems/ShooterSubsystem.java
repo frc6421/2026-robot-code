@@ -48,6 +48,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.RunCommand;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.robot.Constants.TrajectoryConstants;
+import frc.robot.Constants;
 import frc.robot.SOTMTable;
 import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
 import frc.robot.Constants.ShooterConstants;
@@ -213,6 +214,15 @@ public class ShooterSubsystem extends SubsystemBase {
     shooterMotorLeft.setControl(shooterRequest);
   }
 
+  public Command setRPMAuto(double rpm) {
+return runOnce(() -> {
+    double rps = rpm/60.0;
+
+    shooterRequest = shooterRequest.withVelocity(rps).withFeedForward(ShooterConstants.SHOOTER_PID_VALUES.kV * rps);
+    shooterMotorLeft.setControl(shooterRequest);
+});
+  }
+
   public double getRPM() {
     return (shooterMotorLeft.getVelocity().getValueAsDouble() * 60);
   }
@@ -334,6 +344,7 @@ public class ShooterSubsystem extends SubsystemBase {
 
         this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
         this.turnShooter(MathUtil.inputModulus(360 - turretAngle - 180.0, -180, 180));
+        this.setHoodAngle(Constants.ShooterConstants.HOOD_ANGLE_SHOOT);
 
         // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
         turretLigament.setAngle(MathUtil.inputModulus(360 - turretAngle - 180, -180, 180) + 180);

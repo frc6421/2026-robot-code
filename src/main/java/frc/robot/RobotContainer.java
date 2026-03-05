@@ -10,6 +10,9 @@ import frc.robot.Constants.TransitionConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
 import frc.robot.command.ZoneCommand;
+import frc.robot.command.autoCommands.RedDBackCommand;
+import frc.robot.command.autoCommands.RedDLoopClimbCommand;
+import frc.robot.command.autoCommands.RedPreClimbCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -72,6 +75,10 @@ public class RobotContainer{
   private final ShooterRevUp shootingRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
   private final ZoneCommand zoneCommand = new ZoneCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
 
+  private final RedDBackCommand redDBackCommand = new RedDBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedPreClimbCommand redPreClimbCommand = new RedPreClimbCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  // private final RedDLoopClimbCommand redDLoopClimbCommand = new RedDLoopClimbCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
 			.withDeadband(MaxSpeed * 0.03).withRotationalDeadband(MaxAngularRate * 0.03) // Add a 10% deadband
@@ -90,6 +97,9 @@ public class RobotContainer{
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     autoChooser = new SendableChooser<>();
+    autoChooser.addOption("Red D Back", redDBackCommand);
+    autoChooser.setDefaultOption("Red D Pre Climb", redPreClimbCommand);
+    // autoChooser.addOption("Red D Loop Climb", redDLoopClimbCommand);
 
     hoodChooser = new SendableChooser<>();
     hoodChooser.addOption("Pass", Constants.ShooterConstants.ACTUATOR_PASSING);

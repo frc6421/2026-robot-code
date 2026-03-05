@@ -35,7 +35,7 @@ public class ZoneCommand extends Command {
     IntakeSubsystem intakeSubsystem,
     TransitionSubsystem transitionSubsystem,
     ShooterSubsystem shooterSubsystem, Supplier<SwerveDriveState> currentState) {
-    addRequirements(intakeSubsystem, transitionSubsystem, shooterSubsystem);
+   // addRequirements(intakeSubsystem, transitionSubsystem, shooterSubsystem);
 
     this.shooterSubsystem = shooterSubsystem;
     this.intakeSubsystem = intakeSubsystem;
@@ -89,6 +89,7 @@ public class ZoneCommand extends Command {
         0.0, 0.0);
     shooterSubsystem.stopShooter();
     shooterSubsystem.stopShooterTurn();
+    shooterSubsystem.setHoodAngle(Constants.ShooterConstants.HOOD_ANGLE_START);
   }
 
   // Returns true when the command should end.

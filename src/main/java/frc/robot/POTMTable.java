@@ -16,9 +16,9 @@ public class POTMTable {
 
     static {
         // key = Distance (m); value = Velocity (RPM)
-        velocityMapRPM.put(Inches.of(167).in(Meters), 4036.0);
-        velocityMapRPM.put(Inches.of(239).in(Meters), 4901.0);
-        velocityMapRPM.put(Inches.of(400).in(Meters), 5341.0);
+        velocityMapRPM.put(Inches.of(167).in(Meters), 4236.0);
+        velocityMapRPM.put(Inches.of(239).in(Meters), 5101.0);
+        velocityMapRPM.put(Inches.of(400).in(Meters), 5541.0);
     }
     /**
      * This method assumes constant angle, only use when Shooting, never when Passing

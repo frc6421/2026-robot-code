@@ -37,14 +37,14 @@ public class RedDLoopClimbCommand extends SequentialCommandGroup {
     addCommands(
       zoneCommand, 
       new WaitCommand(2),
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_BUMP_D_L),
       new InstantCommand(() -> zoneCommand.cancel()),
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD), 
+      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD_EDGE), 
+      //new InstantCommand(() -> intake.intakeOut()),
+      intakeSubsystem.intakeOutAuto(),
       driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.CENTER_FACE_BDRO), 
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RO),
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_BUMP_O_R), 
-      zoneCommand,
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_OUTPOST_SCORE)
+      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RO_EDGE),
+      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_OUTPOST_SCORE), 
+      zoneCommand
     );
   }
 }

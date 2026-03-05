@@ -6,9 +6,12 @@ package frc.robot.command.autoCommands;
 
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
+import frc.robot.Constants.ClimbPositions;
+import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
 import frc.robot.command.ZoneCommand;
 import frc.robot.generated.TunerConstants;
@@ -30,20 +33,19 @@ public class RedPreClimbCommand extends SequentialCommandGroup {
   private ShooterSubsystem shooterSubsystem;
   private ClimbSubsystem climbSubsystem;
 
-  private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-  private final ZoneCommand zoneCommand = new ZoneCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
-
-
   public RedPreClimbCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
   ShooterSubsystem shooter, TransitionSubsystem transition) {
 
     addCommands(
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE),
-      zoneCommand,
-      new WaitCommand(2),
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT_OFFSET), 
-      new InstantCommand(() -> zoneCommand.cancel()),
-      driveSubsystem.profiledAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT)
+      drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE),
+      new ParallelDeadlineGroup(
+          new WaitCommand(3),
+          new ZoneCommand(intake, transition, shooter, () -> drive.getState())
+          ),
+      drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT_OFFSET), 
+      shooter.setRPMAuto(0),
+      drive.profiledAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT)
+      //new ClimbCommand(climb, ClimbPositions.L1_INCHES) 
     );
   }
 }
