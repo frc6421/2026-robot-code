@@ -19,6 +19,7 @@ import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransitionSubsystem;
+import frc.robot.subsystems.WarriorCamera;
 import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
 
 import static edu.wpi.first.units.Units.MetersPerSecond;
@@ -69,6 +70,7 @@ public class RobotContainer{
   private final IntakeSubsystem intakeSubsystem = new IntakeSubsystem();
   private final ShooterSubsystem shooterSubsystem = new ShooterSubsystem();
   private final TransitionSubsystem transitionSubsystem = new TransitionSubsystem();
+  private final WarriorCamera vision;
 
   private final ClimbCommand climbGoesUpCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.L1_INCHES);
   private final ClimbCommand climbGoesDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
@@ -104,6 +106,8 @@ public class RobotContainer{
     hoodChooser = new SendableChooser<>();
     hoodChooser.addOption("Pass", Constants.ShooterConstants.ACTUATOR_PASSING);
     hoodChooser.setDefaultOption("Shoot", Constants.ShooterConstants.ACTUATOR_SHOOTING);
+
+    vision = new WarriorCamera(drivetrain);
     // Configure the trigger bindings
 
 /**
@@ -243,7 +247,7 @@ public class RobotContainer{
   }
 
   public void autoVisionGyroReset() {
-    drivetrain.visionGyroReset();
+    // drivetrain.visionGyroReset();
   }
 
   // @Override

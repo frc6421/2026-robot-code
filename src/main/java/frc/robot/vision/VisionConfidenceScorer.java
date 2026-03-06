@@ -13,8 +13,8 @@ import edu.wpi.first.math.numbers.N3;
 public class VisionConfidenceScorer {
     private static final double TRUSTED_TAG_AMOUNT = 1.0;
     private static final double TRUSTED_TAG_DISTANCE = VisionPoseValidator.DISTANCE_LIMIT;
-    private static final double XY_STD_DEVS = 0.35;
-    private static final double THETA_STD_DEVS = 0.6;
+    private static final double XY_STD_DEVS = 0.00035;
+    private static final double THETA_STD_DEVS = 0.0006;
     public static double compute(
         int tagCount,
         double ambiguity,

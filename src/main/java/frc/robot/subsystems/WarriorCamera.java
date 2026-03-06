@@ -17,6 +17,8 @@ import org.photonvision.simulation.SimCameraProperties;
 import org.photonvision.simulation.VisionSystemSim;
 import org.photonvision.targeting.PhotonPipelineResult;
 
+import com.ctre.phoenix6.Utils;
+
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Transform3d;
@@ -194,9 +196,8 @@ public class WarriorCamera extends SubsystemBase {
     }
 
     latestEstimate = VisionPoseMerger.merge(validPoses);
+    injectVisionMeasurement(latestEstimate);
     publishDebug(validPoses, latestEstimate);
-
-    if (latestEstimate != null) injectVisionMeasurement(latestEstimate);
   }
 
   public VisionPoseEstimate getLatestEstimate() {
@@ -205,10 +206,10 @@ public class WarriorCamera extends SubsystemBase {
 
   private void injectVisionMeasurement(VisionPoseEstimate estimate) {
     if (estimate == null) return;
-
+    drivetrain.setVisionMeasurementStdDevs(estimate.stdDevs());
     drivetrain.addVisionMeasurement(
       estimate.pose(),
-      estimate.timestamp(),
+      Utils.fpgaToCurrentTime(estimate.timestamp()),
       estimate.stdDevs());
   }
 

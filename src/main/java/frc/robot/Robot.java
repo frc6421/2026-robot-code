@@ -51,7 +51,6 @@ public class Robot extends TimedRobot {
   /** This function is called once each time the robot enters Disabled mode. */
   @Override
   public void disabledInit() {
-    m_robotContainer.autoVisionGyroReset();
   }
 
   @Override
@@ -60,7 +59,6 @@ public class Robot extends TimedRobot {
   /** This autonomous runs the autonomous command selected by your {@link RobotContainer} class. */
   @Override
   public void autonomousInit() {
-    m_autonomousCommand = m_robotContainer.getAutonomousCommand();
     // schedule the autonomous command (example)
     if (m_autonomousCommand != null) {
       CommandScheduler.getInstance().schedule(m_autonomousCommand);
