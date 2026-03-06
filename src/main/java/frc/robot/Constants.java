@@ -115,9 +115,9 @@ public final class Constants {
     public static final Pose2d RED_BUMP_O_R = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(218.58)), new Rotation2d(Degrees.of(45)));
     public static final Pose2d RED_BUMP_D_R = new Pose2d (new Translation2d(Inches.of(468.56), Inches.of(98.06)), new Rotation2d(Degrees.of(315)));
     
-    public static final Pose2d RED_CLIMB_DEPOT_FINAL = new Pose2d (new Translation2d(Inches.of(610), Inches.of(134)), new Rotation2d(Degrees.of(0)));
-    public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(619), Inches.of(134)), new Rotation2d(Degrees.of(0)));
-    public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(585.12), Inches.of(130)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT_FINAL = new Pose2d (new Translation2d(Inches.of(610), Inches.of(136)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT = new Pose2d (new Translation2d(Inches.of(619), Inches.of(136)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d RED_CLIMB_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(585.12), Inches.of(132)), new Rotation2d(Degrees.of(0)));
 
     public static final Translation2d RED_HUB_GOAL = new Translation2d(Inches.of(468.565), Inches.of(158.32)); //wrong x values, formerly 414.785
     public static final Translation2d BLUE_HUB_GOAL = new Translation2d(Inches.of(181.555), Inches.of(158.32)); //wrong x values, formerly 235.335

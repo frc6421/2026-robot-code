@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import frc.robot.Constants.IntakePositions;
 import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.Constants.TransitionConstants;
@@ -219,6 +220,7 @@ public class RobotContainer{
   joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
   joystick.start().onTrue(drivetrain.resetGyro());
   joystick.a().toggleOnTrue(zoneCommand);
+  // joystick.leftBumper().whileTrue(intakeSubsystem.setIntakeSpeed(Constants.IntakePositions.INTAKE_SPEED));
 
   // //passing
 

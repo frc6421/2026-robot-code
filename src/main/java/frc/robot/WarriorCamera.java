@@ -290,11 +290,7 @@ public class WarriorCamera implements Sendable {
   }
 
   public int getNumberOfTags() {
-    if (!cameraEstimatedPose.isEmpty()) {
     return cameraEstimatedPose.get().targetsUsed.size();
-    } else {
-      return 0;
-    }
   }
 
   public PhotonPipelineResult getLatestResult() {
