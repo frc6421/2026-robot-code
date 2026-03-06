@@ -11,6 +11,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.Constants.ClimbPositions;
+import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.ClimbCommand;
 import frc.robot.command.ShooterRevUp;
 import frc.robot.command.ZoneCommand;
@@ -37,15 +38,17 @@ public class RedPreClimbCommand extends SequentialCommandGroup {
   ShooterSubsystem shooter, TransitionSubsystem transition) {
 
     addCommands(
-      drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE),
+      drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_SCORE),
       new ParallelDeadlineGroup(
           new WaitCommand(3),
           new ZoneCommand(intake, transition, shooter, () -> drive.getState())
           ),
-      drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT_OFFSET), 
-      shooter.setRPMAuto(0),
-      drive.profiledAlignCommand(() -> Constants.TrajectoryConstants.RED_CLIMB_DEPOT)
-      //new ClimbCommand(climb, ClimbPositions.L1_INCHES) 
+      drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_CLIMB_DEPOT_OFFSET), 
+      new InstantCommand(() -> shooter.setRPM(0)),
+      drive.profiledAlignCommand(() -> TrajectoryConstants.RED_CLIMB_DEPOT),
+      new ClimbCommand(climb, ClimbPositions.L1_INCHES), 
+      drive.profiledAlignCommand(() -> TrajectoryConstants.RED_CLIMB_DEPOT_FINAL),
+      new ClimbCommand(climb, ClimbPositions.MATCH_START_INCHES)
     );
   }
 }

@@ -67,6 +67,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public final WarriorCamera backLeftBackCamera = new WarriorCamera("BackCam", WarriorCamera.CameraConstants.BACK_CAM_OFFSET);
 
     private StructPublisher<Pose2d> posePublisher;
+    private StringPublisher visionResetPublisher;
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
     private Pose2d targetPose2d = new Pose2d();
@@ -199,6 +200,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.LEFT_CAM_OFFSET);
         posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
+        visionResetPublisher = inst.getTable("DriveSubsystem").getStringTopic("Vision Reset").publish();
     }
 
     /**
@@ -226,6 +228,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.LEFT_CAM_OFFSET);
         posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
+        visionResetPublisher = inst.getTable("DriveSubsystem").getStringTopic("Vision Reset").publish();
     }
 
     /**
@@ -261,6 +264,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         visionSim.addCamera(backRightCamera.getSimCam(), WarriorCamera.CameraConstants.LEFT_CAM_OFFSET);
         posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
+        visionResetPublisher = inst.getTable("DriveSubsystem").getStringTopic("Vision Reset").publish();
     }
 
     /**
@@ -399,81 +403,95 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     public void visionGyroReset() {
         double cameraAngle = 0.0;
         if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
-            if (backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2) {
+            if (backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2
+            && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
                 cameraAngle = 
             (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + 
             backLeftBackCamera.getPose2d().getRotation().getDegrees() + 
             backRightCamera.getPose2d().getRotation().getDegrees()) / 3.0;
-            System.out.println("visionreset 1");
+            visionResetPublisher.accept("visionreset 1");
             // 1 cam has 2 tags others dont
-            } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2) && backLeftBackCamera.getNumberOfTags() >= 2) {
+            } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2) && backLeftBackCamera.getNumberOfTags() >= 2
+            && backLeftBackCamera.getPose2d() != null) {
                 cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees();
-                System.out.println("visionreset 2");
+                visionResetPublisher.accept("visionreset 2");
 
-            } else if (backLeftLeftCamera.getNumberOfTags() >= 2 && (backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2)) {
+            } else if (backLeftLeftCamera.getNumberOfTags() >= 2 && (backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2)
+            && backLeftLeftCamera.getPose2d() != null) {
                 cameraAngle = backLeftLeftCamera.getPose2d().getRotation().getDegrees();
-                System.out.println("visionreset 3");
+                visionResetPublisher.accept("visionreset 3");
 
-            } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 ) && backRightCamera.getNumberOfTags() >= 2) {
+            } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 ) && backRightCamera.getNumberOfTags() >= 2
+            && backRightCamera.getPose2d() != null) {
                 cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
-                System.out.println("visionreset 4");
+                visionResetPublisher.accept("visionreset 4");
             }
             // 2 cams have 2 tags other doesnt
-             else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2) && backLeftBackCamera.getNumberOfTags() < 2) {
+             else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2) && backLeftBackCamera.getNumberOfTags() < 2
+             && backLeftLeftCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
                 cameraAngle = (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-                System.out.println("visionreset 5");
+                visionResetPublisher.accept("visionreset 5");
 
-            } else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2) && backRightCamera.getNumberOfTags() < 2) {
+            } else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2) && backRightCamera.getNumberOfTags() < 2
+            && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null) {
                 cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backLeftLeftCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-                System.out.println("visionreset 6");
+                visionResetPublisher.accept("visionreset 6");
 
-            } else if ((backRightCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 ) && backLeftLeftCamera.getNumberOfTags() < 2) {
+            } else if ((backRightCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 ) && backLeftLeftCamera.getNumberOfTags() < 2
+            && backLeftBackCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
                 cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-                System.out.println("visionreset 7");
+                visionResetPublisher.accept("visionreset 7");
             }
 
-            else if (backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2 ) {
+            else if (backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2
+            && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
                 cameraAngle = 
             (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + 
             backLeftBackCamera.getPose2d().getRotation().getDegrees() + 
             backRightCamera.getPose2d().getRotation().getDegrees()) / 3.0;
-            System.out.println("visionreset 8");
+            visionResetPublisher.accept("visionreset 8");
             }
         } 
-        
-        else if (backLeftLeftCamera.hasTarget() && (!backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget())) {
+        else if (backLeftLeftCamera.hasTarget() && (!backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget())
+        && backLeftLeftCamera.getPose2d() != null) {
             cameraAngle = backLeftLeftCamera.getPose2d().getRotation().getDegrees();
-            System.out.println("visionreset 9");
+            visionResetPublisher.accept("visionreset 9");
         }
 
-        else if ((!backLeftLeftCamera.hasTarget() && !backRightCamera.hasTarget()) && backLeftBackCamera.hasTarget()) {
+        else if ((!backLeftLeftCamera.hasTarget() && !backRightCamera.hasTarget()) && backLeftBackCamera.hasTarget()
+        && backLeftBackCamera.getPose2d() != null) {
             cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees();
-            System.out.println("visionreset 10");
+            visionResetPublisher.accept("visionreset 10");
         }
 
-        else if ((!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget()) && backRightCamera.hasTarget()) {
+        else if ((!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget()) && backRightCamera.hasTarget()
+        && backRightCamera.getPose2d() != null) {
             cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
-            System.out.println("visionreset 11");
+            visionResetPublisher.accept("visionreset 11");
         }
 
-        else if (!backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
+        else if (!backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()
+        && backLeftBackCamera.getPose2d() != null) {
             cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-            System.out.println("visionreset 12");
+            visionResetPublisher.accept("visionreset 12");
         }
 
-        else if (backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
+        else if (backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()
+        && backLeftLeftCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
             cameraAngle = (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-            System.out.println("visionreset 13");
+            visionResetPublisher.accept("visionreset 13");
         }
 
-        else if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()) {
+        else if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()
+        && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null) {
             cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backLeftLeftCamera.getPose2d().getRotation().getDegrees()) / 2.0;
-            System.out.println("visionreset 14");
+            visionResetPublisher.accept("visionreset 14");
         }
 
-        if (!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()) {
+        if (!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()
+        && backLeftLeftCamera.getPose2d() == null && backLeftBackCamera.getPose2d() == null && backRightCamera.getPose2d() == null) {
             cameraAngle = getPigeon2().getYaw().getValueAsDouble();
-            System.out.println("visionreset 15");
+            visionResetPublisher.accept("visionreset 15");
         }
         getPigeon2().setYaw(cameraAngle);
     }
@@ -541,8 +559,8 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         public Command profiledAutonAlignCommand(Supplier<Pose2d> targetPose) {
         alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
         alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(5.0), Units.degreesToRadians(5.0));
-        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .2);
-        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .2);
+        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .05);
+        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .05);
         return applyRequest(() ->  {
 
           posePublisher.accept(targetPose2d);
