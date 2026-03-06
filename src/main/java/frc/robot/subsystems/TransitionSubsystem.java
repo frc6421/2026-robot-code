@@ -49,17 +49,13 @@ private static final MotorOutputConfigs TRANSITION_MOTOR_CONFIGS = new MotorOutp
   SmartDashboard.putData("Transition", this);
   }
 
-public Command intakeTransition(double output){
-    return runOnce(() -> {
+public void intakeTransition(double output){
       hopperTransition.set(output);
-    });
   }
 
-public Command shooterTransition(double shooterOutput, double transitionOutput){
-    return runOnce(() -> {
+public void shooterTransition(double shooterOutput, double transitionOutput){
       shooterTransition.set(shooterOutput);
       hopperTransition.set(transitionOutput);
-    });
   }
 
 public void passingTransition(double shooterOutput, double transitionOutput){

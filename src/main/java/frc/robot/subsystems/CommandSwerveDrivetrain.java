@@ -67,6 +67,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     //left and right assuming intake is the front, and you are looking at the intake from the back
 
     private StructPublisher<Pose2d> posePublisher;
+    private StringPublisher visionResetPublisher;
     private final NetworkTableInstance inst = NetworkTableInstance.getDefault();
 
     private Pose2d targetPose2d = new Pose2d();
@@ -199,6 +200,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
         posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
+        visionResetPublisher = inst.getTable("DriveSubsystem").getStringTopic("Vision Reset").publish();
     }
 
     /**
@@ -227,6 +229,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
         
         posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
+        visionResetPublisher = inst.getTable("DriveSubsystem").getStringTopic("Vision Reset").publish();
     }
 
     /**
@@ -262,6 +265,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         // visionSim.addAprilTags(AprilTagFieldLayout.loadField(AprilTagFields.k2026RebuiltAndymark));
         // visionSim.addCamera(shuttleLeftCamera.getSimCam(), WarriorCamera.CameraConstants.FRONT_LEFT_TRANSFORM3D);
         posePublisher = inst.getTable("DriveSubsystem").getStructTopic("Target Align Pose", Pose2d.struct).publish();
+        visionResetPublisher = inst.getTable("DriveSubsystem").getStringTopic("Vision Reset").publish();
     }
 
     /**
@@ -442,6 +446,34 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
         xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
         yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS, .05);
+        return applyRequest(() ->  {
+
+          posePublisher.accept(targetPose2d);
+          Pose2d currentPose = getState().Pose;
+          xControllerProfiled.setGoal(targetPose2d.getX());
+          yControllerProfiled.setGoal(targetPose2d.getY());
+          double xVelocity = xControllerProfiled.calculate(currentPose.getX(), targetPose2d.getX());
+          double yVelocity = yControllerProfiled.calculate(currentPose.getY(), targetPose2d.getY());
+          
+          return alignAngleRequest.withTargetDirection(targetPose2d.getRotation()).withVelocityX(xVelocity).withVelocityY(yVelocity);
+        }).beforeStarting(() -> {
+            targetPose2d = targetPose.get();
+            Pose2d currentPose = getState().Pose;
+            xControllerProfiled.reset(currentPose.getX(), getState().Speeds.vxMetersPerSecond);  
+            yControllerProfiled.reset(currentPose.getY(), getState().Speeds.vyMetersPerSecond);  
+        }
+        ).until(() -> 
+        xControllerProfiled.atGoal() && 
+        yControllerProfiled.atGoal() && 
+        alignAngleRequest.HeadingController.atSetpoint());
+        
+    }
+
+        public Command profiledAutonAlignCommand(Supplier<Pose2d> targetPose) {
+        alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
+        alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(5.0), Units.degreesToRadians(5.0));
+        xControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .05);
+        yControllerProfiled.setTolerance(Constants.AlignConstants.MAX_POSITION_ERROR_METERS_AUTO, .05);
         return applyRequest(() ->  {
 
           posePublisher.accept(targetPose2d);
