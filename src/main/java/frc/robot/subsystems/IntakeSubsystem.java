@@ -9,6 +9,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -30,6 +31,7 @@ import edu.wpi.first.wpilibj.smartdashboard.MechanismRoot2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.RobotContainer;
 import frc.robot.Constants.IntakePositions;
 import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
@@ -60,7 +62,7 @@ public class IntakeSubsystem extends SubsystemBase {
     .withNeutralMode(NeutralModeValue.Brake)
     .withInverted(InvertedValue.CounterClockwise_Positive);
 
-    private static final double FORWARD_SOFT_LIMIT = 5.760;
+    private static final double FORWARD_SOFT_LIMIT = 4.72;
     private static final double REVERSE_SOFT_LIMIT = 0.15;
 
     private static final double INTAKE_MOTOR_SPEED = IntakePositions.INTAKE_SPEED;
@@ -71,6 +73,12 @@ public class IntakeSubsystem extends SubsystemBase {
   .withReverseSoftLimitEnable(true)
   .withForwardSoftLimitThreshold(IntakeConstants.FORWARD_SOFT_LIMIT)
   .withReverseSoftLimitThreshold(IntakeConstants.REVERSE_SOFT_LIMIT);
+
+  private static final CurrentLimitsConfigs INTAKE_CURRENT_LIMITS = new CurrentLimitsConfigs()
+  .withStatorCurrentLimit(80)
+  .withStatorCurrentLimitEnable(true)
+  .withSupplyCurrentLimit(80)
+  .withSupplyCurrentLimitEnable(true);
 
     private static final double INTAKE_ROTATIONS_PER_DEGREE = 0.007285;
 
@@ -118,11 +126,13 @@ public class IntakeSubsystem extends SubsystemBase {
   PIDConfigIntake.kD = IntakeConstants.kD;
 
   intakeMotorConfig = new TalonFXConfiguration()
-  .withMotorOutput(IntakeConstants.INTAKE_MOTOR_CONFIGS);
+  .withMotorOutput(IntakeConstants.INTAKE_MOTOR_CONFIGS)
+  .withCurrentLimits(IntakeConstants.INTAKE_CURRENT_LIMITS);
 
   intakePivotConfig = new TalonFXConfiguration()
   .withMotorOutput(IntakeConstants.INTAKE_PIVOT_CONFIGS)
   .withSoftwareLimitSwitch(IntakeConstants.INTAKE_PIVOT_SOFTWARE_CONFIGS)
+  .withCurrentLimits(IntakeConstants.INTAKE_CURRENT_LIMITS)
   .withSlot0(PIDConfigIntake);
 
   RobotContainer.applyTalonConfigs(intakeMotor, intakeMotorConfig);

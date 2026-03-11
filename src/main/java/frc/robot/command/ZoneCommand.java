@@ -54,6 +54,7 @@ public class ZoneCommand extends Command {
     //   currentState.get().Pose) + "::" + 
     //   (Zones.neutralZone.isPointInZone(currentState.get().Pose) || Zones.opposingZone.isPointInZone(currentState.get().Pose)));
     if (Zones.allianceZone.isPointInZone(currentState.get().Pose)) {
+      System.out.println("alliance zone");
       intakeSubsystem.intakeOut();
       shooterSubsystem.updateSOTM(currentState.get().Pose, currentState.get().Speeds);
       transitionSubsystem.shooterTransition(
@@ -77,6 +78,8 @@ public class ZoneCommand extends Command {
       transitionSubsystem.shooterTransition(
         TransitionConstants.TRANSITION_SHOOTER_SPEED,
         TransitionConstants.TRANSITION_HOPPER_SPEED);
+    } else {
+      System.out.println("No zone");
     }
   }
 

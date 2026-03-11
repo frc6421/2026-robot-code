@@ -10,6 +10,7 @@ import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.Constants.IntakePositions;
+import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.ZoneCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -33,24 +34,25 @@ public class RedDBackCommand extends SequentialCommandGroup {
       ShooterSubsystem shooter, TransitionSubsystem transition) {
 
     addCommands(
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_SCORE),
+        // new ParallelDeadlineGroup(
+        //     new WaitCommand(3),
+        //     new ZoneCommand(intake, transition, shooter, () -> drive.getState())),
+        new InstantCommand(() -> shooter.setRPM(0)),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RD),
+        new InstantCommand(() -> intake.intakeOut()),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RD_FAR_EDGE),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RD_EDGE),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_SCORE),
         new ParallelDeadlineGroup(
-            new WaitCommand(3),
+            new WaitCommand(5),
             new ZoneCommand(intake, transition, shooter, () -> drive.getState())),
         new InstantCommand(() -> shooter.setRPM(0)),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RD),
         new InstantCommand(() -> intake.intakeOut()),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RD_FAR_EDGE),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD_EDGE),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE),
-        new ParallelDeadlineGroup(
-            new WaitCommand(3),
-            new ZoneCommand(intake, transition, shooter, () -> drive.getState())),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD_EDGE),
-        new InstantCommand(() -> shooter.setRPM(0)),
-        new InstantCommand(() -> intake.intakeOut()),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RD_FAR_EDGE),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.NEUTRAL_RD_EDGE),
-        drive.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RD_FAR_EDGE),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RD_EDGE),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_SCORE),
         new ZoneCommand(intake, transition, shooter, () -> drive.getState()));
   }
 }

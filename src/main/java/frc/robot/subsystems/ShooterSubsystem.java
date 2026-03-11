@@ -13,6 +13,7 @@ package frc.robot.subsystems;
 import java.util.function.DoubleSupplier;
 import java.util.function.Supplier;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.Slot0Configs;
 import com.ctre.phoenix6.configs.SoftwareLimitSwitchConfigs;
@@ -106,6 +107,12 @@ public class ShooterSubsystem extends SubsystemBase {
     .withForwardSoftLimitThreshold(14.7)
     .withReverseSoftLimitThreshold(-15.0);
 
+    private static final CurrentLimitsConfigs SHOOTER_CURRENT_CONFIGS = new CurrentLimitsConfigs()
+    .withStatorCurrentLimit(65)
+    .withStatorCurrentLimitEnable(true)
+    .withSupplyCurrentLimit(65)
+    .withSupplyCurrentLimitEnable(true);
+
     private static final class SHOOTER_PID_VALUES {
     private static final double kP = 0.1;
 
@@ -163,11 +170,13 @@ public class ShooterSubsystem extends SubsystemBase {
     PIDConfigTurn.kD = ShooterConstants.SHOOTER_TURN_PID_VALUES.kD;
 
     shooterMotorConfig = new TalonFXConfiguration()
-    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG);
+    .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_CONFIG)
+    .withCurrentLimits(ShooterConstants.SHOOTER_CURRENT_CONFIGS);
 
     shooterMotorTurnConfig = new TalonFXConfiguration()
     .withMotorOutput(ShooterConstants.SHOOTER_MOTOR_TURN_CONFIG)
     .withSoftwareLimitSwitch(ShooterConstants.SHOOTER_TURN_SOFT_LIMITS)
+    .withCurrentLimits(ShooterConstants.SHOOTER_CURRENT_CONFIGS)
     .withSlot0(PIDConfigTurn);
 
     shooterRequest = new VelocityVoltage(0).withEnableFOC(true);
@@ -347,7 +356,7 @@ return runOnce(() -> {
         this.setHoodAngle(Constants.ShooterConstants.HOOD_ANGLE_SHOOT);
 
         // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
-        turretLigament.setAngle(MathUtil.inputModulus(360 - turretAngle - 180, -180, 180) + 180);
+        turretLigament.setAngle(MathUtil.inputModulus(turretAngle, -180, 180) + 180);
         //shotAngle = shotVector.getAngle().getDegrees();
         horizSpeed = idealHorizontalSpeed;
         
@@ -383,10 +392,11 @@ return runOnce(() -> {
 
         this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
         this.turnShooter(MathUtil.inputModulus(360 - turretAngle - 180.0, -180, 180));
-        this.setHoodAngle(newPitch);
+        // this.setHoodAngle(newPitch);
+        // this could be wrong aidan please update after deans
 
         // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
-        turretLigament.setAngle(MathUtil.inputModulus(360 - turretAngle - 180, -180, 180) + 180);
+        turretLigament.setAngle(MathUtil.inputModulus(turretAngle, -180, 180) + 180);
         //shotAngle = shotVector.getAngle().getDegrees();
         horizSpeed = idealHorizontalSpeed; 
     }
@@ -421,10 +431,11 @@ return runOnce(() -> {
 
         this.setRPM((Math.hypot(newHorizontalSpeed, idealVerticalSpeed) / (frc.robot.Constants.ShooterConstants.WHEEL_DIAMETER * Math.PI)) * 60);
         this.turnShooter(MathUtil.inputModulus(360 - turretAngle - 180.0, -180, 180));
-        this.setHoodAngle(newPitch);
+        //this.setHoodAngle(newPitch);
+        // this might be wrong aidan pls check after deans
 
         // setAngle = MathUtil.inputModulus(turretAngle - 180.0, -180, 180);
-        turretLigament.setAngle(MathUtil.inputModulus(360 - turretAngle - 180, -180, 180) + 180);
+        turretLigament.setAngle(MathUtil.inputModulus(turretAngle, -180, 180) + 180);
         //shotAngle = shotVector.getAngle().getDegrees();
         horizSpeed = idealHorizontalSpeed; 
     }
@@ -442,13 +453,19 @@ return runOnce(() -> {
 
     builder.addDoubleProperty("Shooter RPM", () -> shooterMotorLeft.getVelocity().getValueAsDouble()*60, null);
     builder.addDoubleProperty("Shooter Voltage", () -> shooterMotorLeft.getMotorVoltage().getValueAsDouble(), null);
+    builder.addDoubleProperty("Shooter Amps Supply", () -> shooterMotorLeft.getSupplyCurrent().getValueAsDouble(), null);
+    builder.addDoubleProperty("Shooter Amps Stator", () -> shooterMotorLeft.getStatorCurrent().getValueAsDouble(), null);
     
 
     builder.addDoubleProperty("ShooterTurn SetAngle", () -> setAngle, null);
     builder.addDoubleProperty("Shooter Angle", () -> getShooterAngle(), null);
     builder.addDoubleProperty("TargetHorizontalSpeed", () -> horizSpeed, null);
 
+    builder.addDoubleProperty("ShooterTurn Amps Supply", () -> shooterMotorLeft.getSupplyCurrent().getValueAsDouble(), null);
+    builder.addDoubleProperty("ShooterTurn Amps Stator", () -> shooterMotorLeft.getStatorCurrent().getValueAsDouble(), null);
+
     builder.addDoubleProperty("Actuator Length", () -> leftActuator.getPosition(), null);
+    //.addDoubleProperty("Actuator SetPosition", () -> leftActuator., null);
   }
 
 public void simulationPeriodic() {

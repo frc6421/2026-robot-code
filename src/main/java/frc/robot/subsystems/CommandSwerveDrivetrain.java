@@ -99,10 +99,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(1.0, 8.5));
+     new Constraints(3.0, 8.5));
     private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(1.0, 8.5));
+     new Constraints(3.0, 8.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -386,7 +386,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
 
     public void updatePose(WarriorCamera camera) {
-        if(camera.filterOdometry()) {
+        if(camera.filterOdometry(false)) {
                 addVisionMeasurement(
                 new Pose2d(camera.getPose2d().getX(),
                 camera.getPose2d().getY(),
@@ -404,7 +404,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         double cameraAngle = 0.0;
         if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()) {
             if (backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2
-            && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
+            && backLeftLeftCamera.filterOdometry(true) && backLeftBackCamera.filterOdometry(true) && backRightCamera.filterOdometry(true)) {
                 cameraAngle = 
             (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + 
             backLeftBackCamera.getPose2d().getRotation().getDegrees() + 
@@ -412,39 +412,39 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             visionResetPublisher.accept("visionreset 1");
             // 1 cam has 2 tags others dont
             } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2) && backLeftBackCamera.getNumberOfTags() >= 2
-            && backLeftBackCamera.getPose2d() != null) {
+            && backLeftBackCamera.filterOdometry(true)) {
                 cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees();
                 visionResetPublisher.accept("visionreset 2");
 
             } else if (backLeftLeftCamera.getNumberOfTags() >= 2 && (backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2)
-            && backLeftLeftCamera.getPose2d() != null) {
+            && backLeftLeftCamera.filterOdometry(true)) {
                 cameraAngle = backLeftLeftCamera.getPose2d().getRotation().getDegrees();
                 visionResetPublisher.accept("visionreset 3");
 
             } else if ((backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 ) && backRightCamera.getNumberOfTags() >= 2
-            && backRightCamera.getPose2d() != null) {
+            && backRightCamera.filterOdometry(true)) {
                 cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
                 visionResetPublisher.accept("visionreset 4");
             }
             // 2 cams have 2 tags other doesnt
              else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backRightCamera.getNumberOfTags() >= 2) && backLeftBackCamera.getNumberOfTags() < 2
-             && backLeftLeftCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
+             && backLeftLeftCamera.filterOdometry(true) && backRightCamera.filterOdometry(true)) {
                 cameraAngle = (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
                 visionResetPublisher.accept("visionreset 5");
 
             } else if ((backLeftLeftCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2) && backRightCamera.getNumberOfTags() < 2
-            && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null) {
+            && backLeftLeftCamera.filterOdometry(true) && backLeftBackCamera.filterOdometry(true)) {
                 cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backLeftLeftCamera.getPose2d().getRotation().getDegrees()) / 2.0;
                 visionResetPublisher.accept("visionreset 6");
 
             } else if ((backRightCamera.getNumberOfTags() >= 2 && backLeftBackCamera.getNumberOfTags() >= 2 ) && backLeftLeftCamera.getNumberOfTags() < 2
-            && backLeftBackCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
+            && backLeftBackCamera.filterOdometry(true) && backRightCamera.filterOdometry(true)) {
                 cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
                 visionResetPublisher.accept("visionreset 7");
             }
 
             else if (backLeftLeftCamera.getNumberOfTags() < 2 && backLeftBackCamera.getNumberOfTags() < 2 && backRightCamera.getNumberOfTags() < 2
-            && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
+            && backLeftLeftCamera.filterOdometry(true) && backLeftBackCamera.filterOdometry(true) && backRightCamera.filterOdometry(true)) {
                 cameraAngle = 
             (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + 
             backLeftBackCamera.getPose2d().getRotation().getDegrees() + 
@@ -453,49 +453,58 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             }
         } 
         else if (backLeftLeftCamera.hasTarget() && (!backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget())
-        && backLeftLeftCamera.getPose2d() != null) {
+        && backLeftLeftCamera.filterOdometry(true)) {
             cameraAngle = backLeftLeftCamera.getPose2d().getRotation().getDegrees();
             visionResetPublisher.accept("visionreset 9");
         }
 
         else if ((!backLeftLeftCamera.hasTarget() && !backRightCamera.hasTarget()) && backLeftBackCamera.hasTarget()
-        && backLeftBackCamera.getPose2d() != null) {
+        && backLeftBackCamera.filterOdometry(true)) {
             cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees();
             visionResetPublisher.accept("visionreset 10");
         }
 
         else if ((!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget()) && backRightCamera.hasTarget()
-        && backRightCamera.getPose2d() != null) {
+        && backRightCamera.filterOdometry(true)) {
             cameraAngle = backRightCamera.getPose2d().getRotation().getDegrees();
             visionResetPublisher.accept("visionreset 11");
         }
 
         else if (!backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()
-        && backLeftBackCamera.getPose2d() != null) {
+        && backLeftBackCamera.filterOdometry(true)) {
             cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
             visionResetPublisher.accept("visionreset 12");
         }
 
         else if (backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()
-        && backLeftLeftCamera.getPose2d() != null && backRightCamera.getPose2d() != null) {
+        && backLeftLeftCamera.filterOdometry(true) && backRightCamera.filterOdometry(true)) {
             cameraAngle = (backLeftLeftCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
             visionResetPublisher.accept("visionreset 13");
         }
 
         else if (backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()
-        && backLeftLeftCamera.getPose2d() != null && backLeftBackCamera.getPose2d() != null) {
+        && backLeftLeftCamera.filterOdometry(true) && backLeftBackCamera.filterOdometry(true)) {
             cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backLeftLeftCamera.getPose2d().getRotation().getDegrees()) / 2.0;
             visionResetPublisher.accept("visionreset 14");
         }
 
         if (!backLeftLeftCamera.hasTarget() && !backLeftBackCamera.hasTarget() && !backRightCamera.hasTarget()
-        && backLeftLeftCamera.getPose2d() == null && backLeftBackCamera.getPose2d() == null && backRightCamera.getPose2d() == null) {
+        && backLeftLeftCamera.filterOdometry(true) != true && backLeftBackCamera.filterOdometry(true) != true && backRightCamera.filterOdometry(true) != true) {
             cameraAngle = getPigeon2().getYaw().getValueAsDouble();
             visionResetPublisher.accept("visionreset 15");
         }
         getPigeon2().setYaw(cameraAngle);
     }
 
+    public void visionGyroResetBackCam() {
+        double cameraAngle = getPigeon2().getRotation2d().getDegrees();
+        if (backLeftBackCamera.isCameraConnected()) {
+        if (backLeftBackCamera.getNumberOfTags() >= 2 || backLeftBackCamera.filterOdometry(true)) {
+            cameraAngle = backLeftBackCamera.getPose2d().getRotation().getDegrees(); 
+        }
+    }
+        getPigeon2().setYaw(cameraAngle);
+    }
     /**
      * Return the pose at a given timestamp, if the buffer is not empty.
      *

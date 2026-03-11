@@ -13,25 +13,28 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
 import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.ShooterRevUp;
+import frc.robot.command.ZoneCommand;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransitionSubsystem;
 
 /* You should consider using the more terse Command factories API instead https://docs.wpilib.org/en/stable/docs/software/commandbased/organizing-command-based.html#defining-commands */
-public class BluePreloadCommand extends SequentialCommandGroup {
+public class BluePreCommand extends SequentialCommandGroup {
   /** Creates a new RedPreload. */
-  public BluePreloadCommand(ClimbSubsystem climbSubsystem, CommandSwerveDrivetrain driveSubsystem,
-  ShooterSubsystem shooterSubsystem, TransitionSubsystem transitionSubsystem) {
+  private CommandSwerveDrivetrain driveSubsystem;
+  private IntakeSubsystem intakeSubsystem;
+  private TransitionSubsystem transitionSubsystem;
+  private ShooterSubsystem shooterSubsystem;
+  private ClimbSubsystem climbSubsystem;
+
+  public BluePreCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
+  ShooterSubsystem shooter, TransitionSubsystem transition) {
+
     addCommands(
-      //driveSubsystem.profiledAlignCommand(() -> Constants.TrajectoryConstants.BLUE_ALLIANCE),
-      new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM),
-      new InstantCommand(() -> transitionSubsystem.shooterTransition(
-        Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
-        Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)),
-      new WaitCommand(3.5),
-      new InstantCommand(() -> transitionSubsystem.stopTransition()),
-      new InstantCommand(() -> shooterSubsystem.stopShooter())
+        //drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_PRE_SCORE),
+        new ZoneCommand(intake, transition, shooter, () -> drive.getState())
     );
   }
 }

@@ -174,7 +174,8 @@ public class ClimbSubsystem extends SubsystemBase {
     builder.addDoubleProperty("Motor Rotations", () -> getClimberHeight() / ClimbConstants.CLIMBER_INCHES_PER_ROTATION, null);
     builder.addDoubleProperty("Climber Velocity", () -> climbMotor.getVelocity().getValueAsDouble(), null);
     builder.addDoubleProperty("Climber Voltage", () -> climbMotor.getMotorVoltage().getValueAsDouble(), null);
-    builder.addDoubleProperty("Climber Current", () -> climbMotor.getStatorCurrent().getValueAsDouble(), null);
+    builder.addDoubleProperty("Climber Current Stator", () -> climbMotor.getStatorCurrent().getValueAsDouble(), null);
+    builder.addDoubleProperty("Climber Current Supply", () -> climbMotor.getSupplyCurrent().getValueAsDouble(), null);
     builder.addDoubleProperty("Climber Height", () -> getClimberHeight(), null);
     builder.addBooleanProperty("Climber Within Error", () -> withinError(Constants.ClimbPositions.L1_INCHES), null);
   }

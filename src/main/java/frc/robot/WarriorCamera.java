@@ -272,6 +272,10 @@ public class WarriorCamera implements Sendable {
     return latestCameraResult.getBestTarget().fiducialId;
   }
 
+  public boolean isCameraConnected() {
+    return camera.isConnected();
+  }
+
   public double getAmbiguity() {
     if (latestCameraResult.hasTargets()) {
       return latestCameraResult.getBestTarget().poseAmbiguity;
@@ -290,7 +294,11 @@ public class WarriorCamera implements Sendable {
   }
 
   public int getNumberOfTags() {
+    if(!cameraEstimatedPose.isEmpty()) {
     return cameraEstimatedPose.get().targetsUsed.size();
+    } else {
+      return 0;
+    }
   }
 
   public PhotonPipelineResult getLatestResult() {
@@ -325,9 +333,11 @@ public class WarriorCamera implements Sendable {
    * Using constants created above, we check the data from the camera, and determine its validity
    * @return true if  the pose is valid <p> false if the pose is not
    */
-  public boolean filterOdometry() {
+  public boolean filterOdometry(boolean secondRun) {
     //ensure data is fresh, this is the only place where refreshData is called each cycle (besides initialization)
+    if (!secondRun) {
     refreshData();
+    }
 
     /*Is the camera connected, or do we have a pose? */
     if (!camera.isConnected()) {

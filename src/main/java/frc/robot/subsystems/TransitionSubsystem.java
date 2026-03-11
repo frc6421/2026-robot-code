@@ -4,6 +4,7 @@
 
 package frc.robot.subsystems;
 
+import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
 import com.ctre.phoenix6.configs.MotorOutputConfigs;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.hardware.TalonFX;
@@ -31,6 +32,12 @@ private static final int HOPPER_TRANSITION_ID = 21;
 private static final MotorOutputConfigs TRANSITION_MOTOR_CONFIGS = new MotorOutputConfigs()
     .withNeutralMode(NeutralModeValue.Coast)
     .withInverted(InvertedValue.Clockwise_Positive);
+
+private static final CurrentLimitsConfigs TRANSITION_CURRENT_LIMITS = new CurrentLimitsConfigs()
+    .withStatorCurrentLimit(55)
+    .withStatorCurrentLimitEnable(true)
+    .withSupplyCurrentLimit(55)
+    .withSupplyCurrentLimitEnable(true);
 }
 
  public TransitionSubsystem() {
@@ -41,7 +48,8 @@ private static final MotorOutputConfigs TRANSITION_MOTOR_CONFIGS = new MotorOutp
   RobotContainer.applyTalonConfigs(hopperTransition, new TalonFXConfiguration());
 
   transitionConfig = new TalonFXConfiguration()
-  .withMotorOutput(TransitionConstants.TRANSITION_MOTOR_CONFIGS);
+  .withMotorOutput(TransitionConstants.TRANSITION_MOTOR_CONFIGS)
+  .withCurrentLimits(TransitionConstants.TRANSITION_CURRENT_LIMITS);
 
   RobotContainer.applyTalonConfigs(shooterTransition, transitionConfig);
   RobotContainer.applyTalonConfigs(hopperTransition, transitionConfig);
@@ -79,5 +87,10 @@ public void stopTransition(){
       super.initSendable(builder);
 
       builder.addDoubleProperty("ShooterTransitionRPM", () -> shooterTransition.getVelocity().getValueAsDouble() * 60, null);
+
+      builder.addDoubleProperty("ShooterTransition Current Supply", () -> shooterTransition.getSupplyCurrent().getValueAsDouble(), null);
+      builder.addDoubleProperty("ShooterTransition Current Stator", () -> shooterTransition.getStatorCurrent().getValueAsDouble(), null);
+      builder.addDoubleProperty("HopperTransition Current Supply", () -> hopperTransition.getSupplyCurrent().getValueAsDouble(), null);
+      builder.addDoubleProperty("HopperTransition Current Stator", () -> hopperTransition.getStatorCurrent().getValueAsDouble(), null);
   }
 }

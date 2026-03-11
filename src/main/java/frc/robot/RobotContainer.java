@@ -9,15 +9,24 @@ import frc.robot.Constants.OperatorConstants;
 import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.Constants.TransitionConstants;
 import frc.robot.command.ClimbCommand;
+import frc.robot.command.FixedCommand;
 import frc.robot.command.ShooterRevUp;
+import frc.robot.command.TargetCommand;
 import frc.robot.command.ZoneCommand;
+import frc.robot.command.autoCommands.BlueDBackCommand;
+import frc.robot.command.autoCommands.BlueOBackCommand;
+import frc.robot.command.autoCommands.BluePreCommand;
 import frc.robot.command.autoCommands.RedDBackCommand;
-import frc.robot.command.autoCommands.RedDLoopClimbCommand;
+import frc.robot.command.autoCommands.RedDLoopCommand;
+import frc.robot.command.autoCommands.RedDPassCommand;
+import frc.robot.command.autoCommands.RedOBackCommand;
 import frc.robot.command.autoCommands.RedPreClimbCommand;
+import frc.robot.command.autoCommands.RedPreCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
+import frc.robot.subsystems.IntakeSubsystem.IntakeConstants;
 import frc.robot.subsystems.ShooterSubsystem;
 import frc.robot.subsystems.TransitionSubsystem;
 import frc.robot.subsystems.ClimbSubsystem.ClimbConstants;
@@ -75,10 +84,18 @@ public class RobotContainer{
   private final ClimbCommand climbGoesDownCommand = new ClimbCommand(climberSubsystem, Constants.ClimbPositions.MATCH_START_INCHES);
   private final ShooterRevUp shootingRevUp = new ShooterRevUp(shooterSubsystem, transitionSubsystem, Constants.ShooterConstants.SHOOTER_RPM);
   private final ZoneCommand zoneCommand = new ZoneCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
+  private final TargetCommand targetCommand = new TargetCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
+  private final FixedCommand fixedCommand = new FixedCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
 
   private final RedDBackCommand redDBackCommand = new RedDBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final RedPreClimbCommand redPreClimbCommand = new RedPreClimbCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  // private final RedDLoopClimbCommand redDLoopClimbCommand = new RedDLoopClimbCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final BlueDBackCommand blueDBackCommand = new BlueDBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final BlueOBackCommand blueOBackCommand = new BlueOBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final BluePreCommand bluePreCommand = new BluePreCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedDLoopCommand redDLoopCommand = new RedDLoopCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedDPassCommand redDPassCommand = new RedDPassCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedOBackCommand redOBackCommand = new RedOBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedPreCommand redPreCommand = new RedPreCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
 
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -98,9 +115,15 @@ public class RobotContainer{
   /** The container for the robot. Contains subsystems, OI devices, and commands. */
   public RobotContainer() {
     autoChooser = new SendableChooser<>();
+    autoChooser.addOption("Blue D Back", blueDBackCommand);
+    autoChooser.addOption("Blue O Back", blueOBackCommand);
+    autoChooser.addOption("Blue Pre", bluePreCommand);
     autoChooser.addOption("Red D Back", redDBackCommand);
-    autoChooser.setDefaultOption("Red D Pre Climb", redPreClimbCommand);
-    // autoChooser.addOption("Red D Loop Climb", redDLoopClimbCommand);
+    autoChooser.addOption("Red D Pre Climb", redPreClimbCommand);
+    autoChooser.addOption("Red D Loop", redDLoopCommand);
+    autoChooser.addOption("Red D Pass", redDPassCommand);
+    autoChooser.addOption("Red O Back", redOBackCommand);
+    autoChooser.setDefaultOption("Red Pre", redPreCommand);
 
     hoodChooser = new SendableChooser<>();
     hoodChooser.addOption("Pass", Constants.ShooterConstants.ACTUATOR_PASSING);
@@ -147,89 +170,21 @@ public class RobotContainer{
 					// Drive counterclockwise with negative X (left)
 					.withRotationalRate(-joystick.getRightX() * MaxAngularRate)));
 
-    //  joystick.a().onTrue(new InstantCommand(() -> SignalLogger.start()));
-		//  joystick.b().onTrue(new InstantCommand(() -> SignalLogger.stop()));
-    //  joystick.back().and(joystick.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-		//  joystick.back().and(joystick.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-		//  joystick.start().and(joystick.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-    //  joystick.start().and(joystick.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-    // joystick.x().onTrue(climbDownCommand);
-    // joystick.y().onTrue(climbUpCommand);
-
-    // joystick.a().onTrue(new InstantCommand(() -> intakeSubsystem.turnIntake(45)));
-
     drivetrain.registerTelemetry(logger::telemeterize);
-
-    // transitionSubsystem.setDefaultCommand(transitionSubsystem.shooterTransition(
-    //   TransitionConstants.TRANSITION_SHOOTER_SPEED, TransitionConstants.TRANSITION_HOPPER_SPEED));
-    // intakeSubsystem.setDefaultCommand(intakeSubsystem.intakeOut());
-    // joystick.x().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(45)));
-    // joystick.y().onTrue(new InstantCommand(() -> shooterSubsystem.turnShooter(0.0)));
-
-    // joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.85)));
-    // joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.10)));
-
-    // joystick.a().whileTrue(intakeSubsystem.setIntakePivotSpeed(0.25));
-    // joystick.a().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
-
-    // joystick.b().whileTrue(intakeSubsystem.setIntakePivotSpeed(-0.25));
-    // joystick.b().onFalse(new InstantCommand(() -> intakeSubsystem.stopIntakePivot()));
-    //intake
-  //   joystick.x().onTrue(new SequentialCommandGroup(
-  //     intakeSubsystem.setIntakeSpeed(.72),
-  //     intakeSubsystem.setIntakePivotSpeed(.5),
-  //     transitionSubsystem.intakeTransition(Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
-  //   joystick.b().onTrue(new SequentialCommandGroup(
-  //     new InstantCommand(() -> intakeSubsystem.stopIntakePivot()),
-  //     new InstantCommand(() -> intakeSubsystem.stopIntake()),
-  //     new InstantCommand(() -> transitionSubsystem.stopTransition())
-  //   ));
-
-  //   //barf
-  //   joystick.rightBumper().whileTrue(
-  //     transitionSubsystem.shooterTransition(
-  //       Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
-  //       Constants.TransitionConstants.TRANSITION_HOPPER_SPEED));
-  //   joystick.rightBumper().onFalse(new InstantCommand(() -> transitionSubsystem.stopTransition()));
-  
-  // //shooting
-  // joystick.rightTrigger().whileTrue(new SequentialCommandGroup(
-  //   shootingRevUp,
-  //   new InstantCommand(() -> shooterSubsystem.extendActuator(Constants.ShooterConstants.ACTUATOR_SHOOTING)),
-  //   transitionSubsystem.shooterTransition(
-  //     Constants.TransitionConstants.TRANSITION_SHOOTER_SPEED,
-  //     Constants.TransitionConstants.TRANSITION_HOPPER_SPEED)));
-  // joystick.rightTrigger().onFalse(new ParallelCommandGroup(
-  //   new InstantCommand(() -> transitionSubsystem.stopTransition()),
-  //   new InstantCommand(() -> shooterSubsystem.stopShooter())));
-
-  // joystick.leftBumper().whileTrue(drivetrain.profiledAlignCommand( 
-  //     () -> DriverStation.getAlliance()
-  //     .map(alliance ->
-  //       alliance == Alliance.Blue
-  //       ? TrajectoryConstants.BLUE_ALLIANCE
-  //       : TrajectoryConstants.RED_CLIMB_DEPOT
-  // )
-  // .orElse(TrajectoryConstants.BLUE_ALLIANCE)
-  // ));
-  // // .get() == Alliance.Blue) ? 
-  // // TrajectoryConstants.BLUE_ALLIANCE :
-  // // TrajectoryConstants.RED_ALLIANCE));
-
 
   joystick.back().onTrue(new InstantCommand(() -> drivetrain.visionGyroReset()));
   joystick.start().onTrue(drivetrain.resetGyro());
-  joystick.a().toggleOnTrue(zoneCommand);
-  // joystick.leftBumper().whileTrue(intakeSubsystem.setIntakeSpeed(Constants.IntakePositions.INTAKE_SPEED));
+  // joystick.x().toggleOnTrue(zoneCommand);
+  joystick.leftTrigger().onTrue(new InstantCommand(() -> intakeSubsystem.intakeOut()));
+  joystick.leftBumper().onTrue(new InstantCommand(() -> intakeSubsystem.stopIntake()));
+  joystick.y().onTrue(climbGoesUpCommand);
+  joystick.a().onTrue(climbGoesDownCommand);
+  joystick.b().onTrue(new InstantCommand(() -> intakeSubsystem.intakeIn()));
+  joystick.x().onTrue(intakeSubsystem.setIntakeSpeed(-IntakePositions.INTAKE_SPEED));
 
-  // //passing
+  joystick.rightBumper().toggleOnTrue(targetCommand);
+  joystick.rightTrigger().toggleOnTrue(fixedCommand);
 
-  // //climb
-  // joystick.y().onTrue(climbGoesUpCommand);
-  // joystick.a().onTrue(climbGoesDownCommand);
-
-  // joystick.a().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.38)));
-  // joystick.b().whileTrue(new InstantCommand(() -> shooterSubsystem.extendActuator(0.02)));
   }
 
   /**
@@ -250,10 +205,15 @@ public class RobotContainer{
     drivetrain.visionGyroReset();
   }
 
+  public void visionGyroResetBack() {
+    drivetrain.visionGyroResetBackCam();
+  }
+
   // @Override
   // public void simulationPeriodic() {
   //   drivetrain.getVisionSim().update(drivetrain.getState().Pose);
   // }
+
 
   public static void applyTalonConfigs(TalonFX motor, TalonFXConfiguration config) {
 		StatusCode status = StatusCode.StatusCodeNotInitialized;

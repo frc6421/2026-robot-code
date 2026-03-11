@@ -7,6 +7,7 @@ package frc.robot.command.autoCommands;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
+import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.ZoneCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -26,17 +27,12 @@ public class RedPreCommand extends SequentialCommandGroup {
   private ShooterSubsystem shooterSubsystem;
   private ClimbSubsystem climbSubsystem;
 
-  private final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-  private final ZoneCommand zoneCommand = new ZoneCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
-
   public RedPreCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
   ShooterSubsystem shooter, TransitionSubsystem transition) {
 
     addCommands(
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_DEPOT_SCORE),
-      zoneCommand,
-      new WaitCommand(2),
-      driveSubsystem.profiledAutonAlignCommand(() -> Constants.TrajectoryConstants.RED_D_WALL)
+        //drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_PRE_SCORE),
+        new ZoneCommand(intake, transition, shooter, () -> drive.getState())
     );
   }
 }

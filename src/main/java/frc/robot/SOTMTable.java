@@ -16,14 +16,14 @@ public class SOTMTable {
 
     static {
         // key = Distance (m); value = Velocity (RPM)
-        velocityMapRPM.put(Inches.of(55).in(Meters), 2900.0);
-        velocityMapRPM.put(Inches.of(76).in(Meters), 3106.0);
-        velocityMapRPM.put(Inches.of(91).in(Meters), 3243.0);
-        velocityMapRPM.put(Inches.of(104).in(Meters), 3404.0);
-        velocityMapRPM.put(Inches.of(132).in(Meters), 3856.0);
+        velocityMapRPM.put(Inches.of(55).in(Meters), 2700.0);
+        velocityMapRPM.put(Inches.of(76).in(Meters), 2906.0);
+        velocityMapRPM.put(Inches.of(91).in(Meters), 3043.0);
+        velocityMapRPM.put(Inches.of(104).in(Meters), 3204.0);
+        velocityMapRPM.put(Inches.of(132).in(Meters), 3656.0);
         velocityMapRPM.put(Inches.of(160).in(Meters), 4108.0);
-        velocityMapRPM.put(Inches.of(180).in(Meters), 4337.0);
-        velocityMapRPM.put(Inches.of(207).in(Meters), 4521.0);
+        velocityMapRPM.put(Inches.of(180).in(Meters), 4137.0);
+        velocityMapRPM.put(Inches.of(207).in(Meters), 4321.0);
     }
     /**
      * This method assumes constant angle, only use when Shooting, never when Passing
