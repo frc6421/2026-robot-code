@@ -11,7 +11,6 @@ import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants.IntakePositions;
 import frc.robot.Constants.TrajectoryConstants;
 import frc.robot.command.TargetCommand;
-import frc.robot.command.ZoneCommand;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -21,36 +20,39 @@ import frc.robot.subsystems.TransitionSubsystem;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class BlueDBackCommand extends SequentialCommandGroup {
-  /** Creates a new BlueDBackCommand. */
+public class RedDepotCommand extends SequentialCommandGroup {
+  /** Creates a new RedDepotCommand. */
   private CommandSwerveDrivetrain driveSubsystem;
   private IntakeSubsystem intakeSubsystem;
   private TransitionSubsystem transitionSubsystem;
   private ShooterSubsystem shooterSubsystem;
   private ClimbSubsystem climbSubsystem;
 
-  public BlueDBackCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
+  public RedDepotCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
       ShooterSubsystem shooter, TransitionSubsystem transition) {
 
     addCommands(
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_SCORE),
+        new WaitCommand(2),
+        new InstantCommand(() -> intake.intakeOut()),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_SCORE),
         new ParallelDeadlineGroup(
             new WaitCommand(3),
+            drive.stopAlign(),
             new TargetCommand(intake, transition, shooter, () -> drive.getState())),
         new InstantCommand(() -> shooter.setRPM(0)),
         new InstantCommand(() -> intake.intakeOut()),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_BD),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RO_FAR_EDGE),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_BD_EDGE),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_SCORE),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_OFFSET),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_OFFSET),
         new ParallelDeadlineGroup(
             new WaitCommand(5),
+            drive.stopAlign(),
             new TargetCommand(intake, transition, shooter, () -> drive.getState())),
-        new InstantCommand(() -> shooter.setRPM(0)),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_BD),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RO_FAR_EDGE),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_BD_EDGE),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_SCORE),
-        new TargetCommand(intake, transition, shooter, () -> drive.getState()));
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_OFFSET),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT), 
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_DEPOT_OFFSET),
+        drive.stopAlign(),
+        new TargetCommand(intake, transition, shooter, () -> drive.getState())
+        );
   }
 }

@@ -47,7 +47,7 @@ public class FixedCommand extends Command {
 
     //shooterSubsystem.updateSOTM(currentState.get().Pose, currentState.get().Speeds);
     shooterSubsystem.turnShooter(0.0);
-    shooterSubsystem.setRPM(2700);
+    shooterSubsystem.setRPM(2600);
 
     transitionSubsystem.shooterTransition(
         TransitionConstants.TRANSITION_SHOOTER_SPEED,

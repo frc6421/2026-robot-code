@@ -14,13 +14,12 @@ import frc.robot.command.ShooterRevUp;
 import frc.robot.command.TargetCommand;
 import frc.robot.command.ZoneCommand;
 import frc.robot.command.autoCommands.BlueDBackCommand;
+import frc.robot.command.autoCommands.BlueDepotCommand;
 import frc.robot.command.autoCommands.BlueOBackCommand;
 import frc.robot.command.autoCommands.BluePreCommand;
 import frc.robot.command.autoCommands.RedDBackCommand;
-import frc.robot.command.autoCommands.RedDLoopCommand;
-import frc.robot.command.autoCommands.RedDPassCommand;
+import frc.robot.command.autoCommands.RedDepotCommand;
 import frc.robot.command.autoCommands.RedOBackCommand;
-import frc.robot.command.autoCommands.RedPreClimbCommand;
 import frc.robot.command.autoCommands.RedPreCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -88,14 +87,13 @@ public class RobotContainer{
   private final FixedCommand fixedCommand = new FixedCommand(intakeSubsystem, transitionSubsystem, shooterSubsystem, () -> drivetrain.getState());
 
   private final RedDBackCommand redDBackCommand = new RedDBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  private final RedPreClimbCommand redPreClimbCommand = new RedPreClimbCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final BlueDBackCommand blueDBackCommand = new BlueDBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final BlueOBackCommand blueOBackCommand = new BlueOBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final BluePreCommand bluePreCommand = new BluePreCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  private final RedDLoopCommand redDLoopCommand = new RedDLoopCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
-  private final RedDPassCommand redDPassCommand = new RedDPassCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final RedOBackCommand redOBackCommand = new RedOBackCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
   private final RedPreCommand redPreCommand = new RedPreCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final RedDepotCommand redDepotCommand = new RedDepotCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
+  private final BlueDepotCommand blueDepotCommand = new BlueDepotCommand(intakeSubsystem, climberSubsystem, drivetrain, shooterSubsystem, transitionSubsystem);
 
 
   private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -118,11 +116,11 @@ public class RobotContainer{
     autoChooser.addOption("Blue D Back", blueDBackCommand);
     autoChooser.addOption("Blue O Back", blueOBackCommand);
     autoChooser.addOption("Blue Pre", bluePreCommand);
+    autoChooser.addOption("Blue Depot", blueDepotCommand);
     autoChooser.addOption("Red D Back", redDBackCommand);
-    autoChooser.addOption("Red D Pre Climb", redPreClimbCommand);
-    autoChooser.addOption("Red D Loop", redDLoopCommand);
-    autoChooser.addOption("Red D Pass", redDPassCommand);
     autoChooser.addOption("Red O Back", redOBackCommand);
+    autoChooser.addOption("Red Depot", redDepotCommand);
+
     autoChooser.setDefaultOption("Red Pre", redPreCommand);
 
     hoodChooser = new SendableChooser<>();
@@ -182,8 +180,9 @@ public class RobotContainer{
   joystick.b().onTrue(new InstantCommand(() -> intakeSubsystem.intakeIn()));
   joystick.x().onTrue(intakeSubsystem.setIntakeSpeed(-IntakePositions.INTAKE_SPEED));
 
-  joystick.rightBumper().toggleOnTrue(targetCommand);
-  joystick.rightTrigger().toggleOnTrue(fixedCommand);
+  joystick.rightBumper().whileTrue(targetCommand);
+
+  joystick.rightTrigger().whileTrue(fixedCommand);
 
   }
 

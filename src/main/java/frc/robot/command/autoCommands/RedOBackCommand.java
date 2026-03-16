@@ -8,7 +8,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
+import frc.robot.Constants.IntakePositions;
 import frc.robot.Constants.TrajectoryConstants;
+import frc.robot.command.TargetCommand;
 import frc.robot.command.ZoneCommand;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -32,24 +34,23 @@ public class RedOBackCommand extends SequentialCommandGroup {
 
     addCommands(
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_OUTPOST_SCORE),
-        // new ParallelDeadlineGroup(
-        //     new WaitCommand(3),
-        //     new ZoneCommand(intake, transition, shooter, () -> drive.getState())),
+        new ParallelDeadlineGroup(
+            new WaitCommand(3),
+            new TargetCommand(intake, transition, shooter, () -> drive.getState())),
         new InstantCommand(() -> shooter.setRPM(0)),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RO),
         new InstantCommand(() -> intake.intakeOut()),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RO),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RO_FAR_EDGE),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RO_EDGE),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_OUTPOST_SCORE),
         new ParallelDeadlineGroup(
             new WaitCommand(5),
-            new ZoneCommand(intake, transition, shooter, () -> drive.getState())),
+            new TargetCommand(intake, transition, shooter, () -> drive.getState())),
         new InstantCommand(() -> shooter.setRPM(0)),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RO),
-        new InstantCommand(() -> intake.intakeOut()),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RO_FAR_EDGE),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RO_EDGE),
         drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_OUTPOST_SCORE),
-        new ZoneCommand(intake, transition, shooter, () -> drive.getState()));
+        new TargetCommand(intake, transition, shooter, () -> drive.getState()));
   }
 }

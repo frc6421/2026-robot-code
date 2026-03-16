@@ -99,10 +99,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
 
     private final ProfiledPIDController xControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(3.0, 8.5));
+     new Constraints(2.5, 6.5));
     private final ProfiledPIDController yControllerProfiled = new ProfiledPIDController(Constants.AlignConstants.ALIGN_P,
      0.0, 0.0,
-     new Constraints(3.0, 8.5));
+     new Constraints(2.5, 6.5));
 
     private VisionSystemSim visionSim = new VisionSystemSim("Camera Simulation");
     /* Blue alliance sees forward as 0 degrees (toward red alliance wall) */
@@ -471,7 +471,7 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         }
 
         else if (!backLeftLeftCamera.hasTarget() && backLeftBackCamera.hasTarget() && backRightCamera.hasTarget()
-        && backLeftBackCamera.filterOdometry(true)) {
+        && backLeftBackCamera.filterOdometry(true) && backRightCamera.filterOdometry(true)) {
             cameraAngle = (backLeftBackCamera.getPose2d().getRotation().getDegrees() + backRightCamera.getPose2d().getRotation().getDegrees()) / 2.0;
             visionResetPublisher.accept("visionreset 12");
         }
@@ -537,6 +537,12 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         //.andThen(this.runOnce(() -> alignAngleRequest.withVelocityX(0).withVelocityY(0)));
     }
 
+    public Command stopAlign() {
+        return applyRequest(() -> {
+            return new SwerveRequest.FieldCentric().withVelocityX(0).withVelocityY(0).withRotationalRate(0);
+        });
+    }
+
     public Command profiledAlignCommand(Supplier<Pose2d> targetPose) {
         alignAngleRequest.HeadingController.setP(Constants.AutoConstants.THETA_P);
         alignAngleRequest.HeadingController.setTolerance(Units.degreesToRadians(0.5), Units.degreesToRadians(0.5));
@@ -590,6 +596,10 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         xControllerProfiled.atGoal() && 
         yControllerProfiled.atGoal() && 
         alignAngleRequest.HeadingController.atSetpoint());
+        // .andThen(() -> this.setControl(new SwerveRequest.FieldCentric()
+        // .withVelocityX(0)
+        // .withVelocityY(0)
+        // .withRotationalRate(0)));
         
     }
 }

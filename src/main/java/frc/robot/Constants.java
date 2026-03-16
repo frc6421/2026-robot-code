@@ -66,10 +66,7 @@ public final class Constants {
 // robot dimensions: intake-shooter = 36.125, side-side = 31.125
 // facing intake forward on blue: 0 degrees
 // facing high y values: 90 degrees
-
-// outpost is on the right side (Drive Perspective)
-
-// all pose2d are to be finalized
+// blue outpost: (0, 0)
 
     public static final Pose2d BLUE_OUTPOST = new Pose2d (new Translation2d(Inches.of(0.5), Inches.of(25.62)), new Rotation2d(Degrees.of(180)));
     public static final Pose2d RED_OUTPOST = new Pose2d (new Translation2d(Inches.of(649.62), Inches.of(291.02)), new Rotation2d(Degrees.of(0)));
@@ -133,8 +130,8 @@ public final class Constants {
     public static final Pose2d RED_PRE_SCORE = new Pose2d (new Translation2d(Inches.of(520), Inches.of(158)), new Rotation2d(Degrees.of(0))); 
 
 
-    public static final Pose2d BLUE_OUTPOST_SCORE = new Pose2d (new Translation2d(Inches.of(130), Inches.of(98)), new Rotation2d(Degrees.of(135)));
-    public static final Pose2d BLUE_DEPOT_SCORE = new Pose2d (new Translation2d(Inches.of(130), Inches.of(218)), new Rotation2d(Degrees.of(225)));
+    public static final Pose2d BLUE_OUTPOST_SCORE = new Pose2d (new Translation2d(Inches.of(130), Inches.of(98)), new Rotation2d(Degrees.of(225)));
+    public static final Pose2d BLUE_DEPOT_SCORE = new Pose2d (new Translation2d(Inches.of(130), Inches.of(218)), new Rotation2d(Degrees.of(135)));
 
 
     public static final Pose2d RED_D_WALL = new Pose2d (new Translation2d(Inches.of(570), Inches.of(35)), new Rotation2d(Degrees.of(0)));
@@ -145,6 +142,12 @@ public final class Constants {
     public static final Pose2d BLUE_O_TRENCH = new Pose2d (new Translation2d(Inches.of(181.56), Inches.of(24.5)), new Rotation2d(Degrees.of(0)));
 
     //public static final Pose2d TEST = new Pose2d (new Translation2d(Inches.of(570), Inches.of(98)), new Rotation2d(Degrees.of(90)));
+
+    public static final Pose2d RED_DEPOT = new Pose2d (new Translation2d(Inches.of(614.0), Inches.of(82.32)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d BLUE_DEPOT = new Pose2d (new Translation2d(Inches.of(36.0), Inches.of(234.32)), new Rotation2d(Degrees.of(180)));
+    
+    public static final Pose2d RED_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(594.0), Inches.of(82.32)), new Rotation2d(Degrees.of(0)));
+    public static final Pose2d BLUE_DEPOT_OFFSET = new Pose2d (new Translation2d(Inches.of(56.0), Inches.of(234.32)), new Rotation2d(Degrees.of(180)));
 
   }
 
@@ -157,7 +160,8 @@ public final class Constants {
     public static final double INTAKE_RETRACTED_DEGREES = 0;
     public static final double INTAKE_EXTENDED_DEGREES = 90;
     public static final double INTAKE_SPEED = 0.82;
-    public static final double INTAKE_PIVOT_SPEED = 0.25;
+    public static final double INTAKE_PIVOT_SPEED = 0.35;
+    public static final double INTAKE_PIVOT_SPEED_IN = 0.20;
   }
 
   public static class TransitionConstants {

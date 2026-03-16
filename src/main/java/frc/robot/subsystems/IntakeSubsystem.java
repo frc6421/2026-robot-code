@@ -67,6 +67,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     private static final double INTAKE_MOTOR_SPEED = IntakePositions.INTAKE_SPEED;
     private static final double INTAKE_PIVOT_SPEED = IntakePositions.INTAKE_PIVOT_SPEED;
+    private static final double INTAKE_PIVOT_SPEED_IN = IntakePositions.INTAKE_PIVOT_SPEED_IN;
 
     private static final SoftwareLimitSwitchConfigs INTAKE_PIVOT_SOFTWARE_CONFIGS = new SoftwareLimitSwitchConfigs()
   .withForwardSoftLimitEnable(true)
@@ -182,7 +183,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
   public void intakeIn() {
       intakeMotor.set(0);
-      intakePivotLeft.set(-IntakeConstants.INTAKE_PIVOT_SPEED);
+      intakePivotLeft.set(-IntakeConstants.INTAKE_PIVOT_SPEED_IN);
   }
 
   public void stopIntake(){

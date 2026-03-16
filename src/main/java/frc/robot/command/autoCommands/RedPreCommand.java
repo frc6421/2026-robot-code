@@ -4,10 +4,13 @@
 
 package frc.robot.command.autoCommands;
 
+import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
 import frc.robot.Constants;
+import frc.robot.Constants.IntakePositions;
 import frc.robot.Constants.TrajectoryConstants;
+import frc.robot.command.TargetCommand;
 import frc.robot.command.ZoneCommand;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.ClimbSubsystem;
@@ -32,7 +35,7 @@ public class RedPreCommand extends SequentialCommandGroup {
 
     addCommands(
         //drive.profiledAutonAlignCommand(() -> TrajectoryConstants.RED_PRE_SCORE),
-        new ZoneCommand(intake, transition, shooter, () -> drive.getState())
+        new TargetCommand(intake, transition, shooter, () -> drive.getState())
     );
   }
 }

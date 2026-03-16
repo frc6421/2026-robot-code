@@ -8,10 +8,9 @@ import edu.wpi.first.wpilibj2.command.InstantCommand;
 import edu.wpi.first.wpilibj2.command.ParallelDeadlineGroup;
 import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.WaitCommand;
-import frc.robot.Constants;
+import frc.robot.Constants.IntakePositions;
 import frc.robot.Constants.TrajectoryConstants;
-import frc.robot.command.ZoneCommand;
-import frc.robot.generated.TunerConstants;
+import frc.robot.command.TargetCommand;
 import frc.robot.subsystems.ClimbSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
@@ -21,27 +20,35 @@ import frc.robot.subsystems.TransitionSubsystem;
 // NOTE:  Consider using this command inline, rather than writing a subclass.  For more
 // information, see:
 // https://docs.wpilib.org/en/stable/docs/software/commandbased/convenience-features.html
-public class RedDPassCommand extends SequentialCommandGroup {
-  /** Creates a new RedDPassCommand. */
- private CommandSwerveDrivetrain driveSubsystem;
+public class BlueDepotCommand extends SequentialCommandGroup {
+  /** Creates a new BlueDepotCommand. */
+  private CommandSwerveDrivetrain driveSubsystem;
   private IntakeSubsystem intakeSubsystem;
   private TransitionSubsystem transitionSubsystem;
   private ShooterSubsystem shooterSubsystem;
   private ClimbSubsystem climbSubsystem;
 
-  public RedDPassCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
+  public BlueDepotCommand(IntakeSubsystem intake, ClimbSubsystem climb, CommandSwerveDrivetrain drive,
       ShooterSubsystem shooter, TransitionSubsystem transition) {
 
     addCommands(
+        new WaitCommand(3),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_SCORE),
         new ParallelDeadlineGroup(
             new WaitCommand(3),
-            new ZoneCommand(intake, transition, shooter, () -> drive.getState())),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RD),
+            new TargetCommand(intake, transition, shooter, () -> drive.getState())),
+        new InstantCommand(() -> shooter.setRPM(0)),
         new InstantCommand(() -> intake.intakeOut()),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.CENTER_FACE_BDRO),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RO),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.CENTER_FACE_BORD),
-        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.NEUTRAL_RD)
-      );
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_OFFSET),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_OFFSET),
+        new ParallelDeadlineGroup(
+            new WaitCommand(5),
+            new TargetCommand(intake, transition, shooter, () -> drive.getState())),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_OFFSET),
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT), 
+        drive.profiledAutonAlignCommand(() -> TrajectoryConstants.BLUE_DEPOT_OFFSET),
+        new TargetCommand(intake, transition, shooter, () -> drive.getState())
+        );
   }
 }
